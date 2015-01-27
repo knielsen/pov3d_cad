@@ -1,25 +1,25 @@
 $fn = 40;
 
 // "extra" is extra spacing around the axis, to avoid too cramped innermost circle.
-extra = -6.9;
+extra = -10.9;
 
 axis_height = 100;
 axis_dia = 8;
 pcb_thick = 1.0;
-pcb_width=50;
+pcb_width=80;
 pcb_len=100;
 pcb_angle=37.5;
 
 /* 0805 LED */
-led_len=2.0;
-led_width=1.25;
+led_len=1.6;
+led_width=1.5;
 led_thick=0.25;
 led_protude=0.62;
 led_dot_offset=led_thick+led_protude*0.2;
 
-n_leds=8;
+n_leds=7;
 n_layers=8;
-l_pix=3.5;
+l_pix=5.5;
 h_pix=l_pix;
 
 module led() {
@@ -60,8 +60,8 @@ module pcb() {
         for (i = [0:n_layers-1]) {
           assign(y=(i-(n_layers-1)/2)*h_pix/tan(pcb_angle)) {
             for (j = [0:n_leds-1]) {
-if (!( (i==0||i==n_layers-1)&&(j<=1 || j >=n_leds-2) ) &&
-    !( (i==1||i==n_layers-2)&&(j<=0 || j >=n_leds-1) ) )
+if (!( (i==0||i==n_layers-1)&&(j<=1 || j >=n_leds-1) ) &&
+    !( (i==1||i==n_layers-2)&&j<=0 ) )
               assign(x=sqrt((W+j*l_pix)*(W+j*l_pix)-y*y)) {
                 translate([x,y/cos(pcb_angle),0])
                   led();
