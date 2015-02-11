@@ -4,7 +4,7 @@ $fn = 40;
 extra = -10.9;
 
 axis_height = 100;
-axis_dia = 8;
+axis_dia = 98;
 pcb_thick = 1.0;
 pcb_width=80;
 pcb_len=100;
@@ -46,7 +46,14 @@ module led() {
 }
 
 module axis() {
-  cylinder(r=axis_dia/2, h=axis_height, center=false);
+  difference() {
+    cylinder(r=axis_dia/2, h=axis_height, center=false);
+    cylinder(r=axis_dia/2-1, h=axis_height*2, center=false);
+    translate([0, 0, axis_height/2-led_dot_offset])
+      rotate([pcb_angle, 0, 0])
+        translate([0, 0, 100-pcb_thick])
+          cube([200, 200, 200], center=true);
+  }
 }
 
 module pcb() {
