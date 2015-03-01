@@ -1,7 +1,9 @@
 enable_bat = true;
 enable_krave = true;
+enable_pcb = true;
 
 spindle_radius = 25;
+squash = 0.82;
 
 base_thick = 2.5;
 base_radius = 40;
@@ -10,6 +12,8 @@ krave_thick = 2.5;
 skrue_dia = 2;
 skrue_dist = 18.5/2;
 center_piece_dia = 5.5;
+pcb_angle=37.5;
+pcb_thick = 0.8;
 
 module battery(bat_x, bat_y, bat_thick) {
   if (enable_bat) {
@@ -25,7 +29,8 @@ module battery(bat_x, bat_y, bat_thick) {
 
 module base(thick, rad) {
   difference() {
-    cylinder(h = thick, r = rad);
+    scale([squash,1,1])
+      cylinder(h = thick, r = rad);
     translate([0,0,-0.1])
       cylinder(h=thick+0.2, r = center_piece_dia, $fn = 60);
     for (i = [0 : 5]) {
@@ -47,6 +52,46 @@ module krave(h, thick) {
 }
 
 
+module pcb(thick) {
+  color("DarkSlateGray", 0.3) {
+    translate([0,0,32])
+      rotate([0, pcb_angle, 0])
+      rotate([0, 0, 90])
+	linear_extrude(height=thick, center=true)
+	  polygon(points = [[49,5.5], [48,16], [45,25], [33.5,34.5],
+			    [11,34.5], [5,34.5+6], [-5,34.5+6], [-11,34.5],
+			    [-33.5,34.5], [-45,25], [-48,16], [-49,5.5],
+			    [-49,-5.5], [-48,-16], [-45,-25], [-33.5,-34.5],
+			    [-11,-34.5], [-5,-(34.5+6)], [5,-(34.5+6)], [11,-34.5],
+			    [33.5,-34.5], [45,-25], [48,-16], [49,-5.5]]);
+  }
+}
+
+
+module sides() {
+  axis_height = 61;
+  axis_dia = 80;
+  led_thick=0.25;
+  led_protude=0.62;
+  led_dot_offset=led_thick+led_protude*0.2;
+
+  translate([0,0,base_thick])
+  color("Crimson", 0.7) {
+    rotate([0,0,90])
+    difference() {
+      scale([1,squash,1])
+	cylinder(r=axis_dia/2, h=axis_height, center=false);
+      scale([1,squash,1])
+	cylinder(r=axis_dia/2-1, h=axis_height*2, center=false);
+      translate([0, 0, axis_height/2-led_dot_offset])
+	rotate([pcb_angle, 0, 0])
+	  translate([0, 0, 100-pcb_thick])
+	    cube([200, 200, 200], center=true);
+    }
+  }
+}
+
+
 base(base_thick, base_radius);
 
 if (enable_krave) {
@@ -55,3 +100,9 @@ if (enable_krave) {
 
 translate([0, 0, base_thick])
   battery(35, 60, 11);
+
+if (enable_pcb) {
+  pcb(pcb_thick);
+}
+
+sides();
