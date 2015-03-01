@@ -1,5 +1,5 @@
 enable_krave = true;
-enable_pcb = true;
+enable_pcb = false;
 
 spindle_radius = 25;
 squash = 0.82;
@@ -7,7 +7,7 @@ squash = 0.82;
 base_thick = 2.5;
 base_thick2 = 7.5;
 base_radius = 40;
-axis_height = 61;
+axis_height = 64;
 axis_dia = 80;
 krave_high = 8;
 krave_thick = 2.5;
@@ -90,8 +90,9 @@ module sides_restrict() {
         cylinder(r=axis_dia/2, h=axis_height, center=false);
       translate([0, 0, axis_height/2-led_dot_offset])
 	rotate([pcb_angle, 0, 0])
-	  translate([0, 0, 100-pcb_thick])
+	  translate([0, 0, 100-pcb_thick]) {
 	    cube([200, 200, 200], center=true);
+          }
     }
 }
 
@@ -112,7 +113,7 @@ module sides() {
 	    cube([axis_dia, axis_dia, base_thick2], center=true);
       }
     }
-  battery(35, 60, 11);
+    battery(35, 60, 11);
   }
 }
 
@@ -139,8 +140,6 @@ module lowsupport() {
 }
 
 
-base(base_thick, base_radius);
-
 if (enable_krave) {
   krave (krave_high, krave_thick);
 }
@@ -156,4 +155,13 @@ if (enable_pcb) {
   pcb(pcb_thick);
 }
 
-sides();
+difference() {
+  union() {
+    base(base_thick, base_radius);
+    sides();
+  }
+  translate([22, 0, 0])
+    cylinder(r=1.5, h=100, center=true, $fn=20);
+  translate([-24, 0, 0])
+    cylinder(r=1.5, h=100, center=true, $fn=20);
+}
