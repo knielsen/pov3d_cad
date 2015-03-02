@@ -1,5 +1,5 @@
-enable_krave = true;
-enable_pcb = false;
+enable_krave = false;
+enable_pcb = true;
 
 spindle_radius = 25;
 squash = 0.82;
@@ -40,9 +40,12 @@ module base(thick, rad) {
     translate([0,0,-0.1])
       cylinder(h=thick+0.2, r = center_piece_dia, $fn = 60);
     for (i = [0 : 5]) {
-      rotate(i*360/6, [0,0,1])
+      rotate(i*360/6, [0,0,1]) {
 	translate([skrue_dist, 0, -0.1])
 	  cylinder(h = thick+0.2, r=skrue_dia/2, $fn = 20);
+	translate([skrue_dist, 0, thick-1.2])
+	  cylinder(h = thick+0.2, r=skrue_dia/2+1.1, $fn = 20);
+      }
     }
   }
 }
@@ -60,7 +63,7 @@ module krave(h, thick) {
 
 module pcb(thick) {
   color("DarkSlateGray", 0.3) {
-    translate([0,0,32])
+    translate([0,0,34])
       rotate([0, pcb_angle, 0])
       rotate([0, 0, 90])
 	linear_extrude(height=thick, center=true)
@@ -84,16 +87,35 @@ module sides_transform() {
 
 
 module sides_restrict() {
-  sides_transform()
+  nut_thick=1.5;
+  nut_wide=6;
+
+  sides_transform() {
     difference() {
       scale([1,squash,1])
         cylinder(r=axis_dia/2, h=axis_height, center=false);
       translate([0, 0, axis_height/2-led_dot_offset])
-	rotate([pcb_angle, 0, 0])
+	rotate([pcb_angle, 0, 0]) {
 	  translate([0, 0, 100-pcb_thick]) {
 	    cube([200, 200, 200], center=true);
           }
+        }
+      translate([0, 0, axis_height/2-led_dot_offset])
+	rotate([pcb_angle, 0, 0]) {
+	  translate([0, 37, -pcb_thick-12])
+	    cylinder(h = 24, r=3/2, $fn = 20);
+          translate([0, 37+10, -pcb_thick-1.5-nut_thick/2])
+            cube([nut_wide, nut_wide+20, nut_thick], center=true);
+        }
+      translate([0, 0, axis_height/2-led_dot_offset])
+	rotate([pcb_angle, 0, 0]) {
+	  translate([0, -37, -pcb_thick-12])
+	    cylinder(h = 24, r=3/2, $fn = 20);
+          translate([0, -37-10, -pcb_thick-1.5-nut_thick/2])
+            cube([nut_wide, nut_wide+20, nut_thick], center=true);
+        }
     }
+  }
 }
 
 
@@ -130,7 +152,7 @@ module highsupport() {
 
 
 module lowsupport() {
-  thick=5;
+  thick=8;
   width=10;
   intersection() {
     translate([axis_dia*squash/2-thick/2, 0, axis_height/2])
