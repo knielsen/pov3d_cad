@@ -1,5 +1,7 @@
 enable_krave = false;
-enable_pcb = true;
+enable_pcb = false;
+enable_supports = true;
+enable_sides = true;
 
 spindle_radius = 25;
 squash = 0.82;
@@ -166,9 +168,11 @@ if (enable_krave) {
   krave (krave_high, krave_thick);
 }
 
-color("darkgreen") {
-  highsupport();
-  lowsupport();
+if (enable_supports) {
+  color("darkgreen") {
+    highsupport();
+    lowsupport();
+  }
 }
 
 
@@ -180,9 +184,10 @@ if (enable_pcb) {
 difference() {
   union() {
     base(base_thick, base_radius);
-    sides();
+    if (enable_sides)
+      sides();
   }
-  translate([22, 0, 0])
+  translate([21, 0, 0])
     cylinder(r=1.5, h=100, center=true, $fn=20);
   translate([-24, 0, 0])
     cylinder(r=1.5, h=100, center=true, $fn=20);
