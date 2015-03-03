@@ -13,9 +13,9 @@ axis_height = 64;
 axis_dia = 80;
 krave_high = 8;
 krave_thick = 2.5;
-skrue_dia = 2;
+skrue_dia = 2.2;
 skrue_dist = 18.5/2;
-center_piece_dia = 5.5;
+center_piece_rad = 5.5+0.3;
 pcb_angle=37.5;
 pcb_thick = 0.8;
 
@@ -40,13 +40,13 @@ module base(thick, rad) {
     scale([squash,1,1])
       cylinder(h = thick, r = rad);
     translate([0,0,-0.1])
-      cylinder(h=thick+0.2, r = center_piece_dia, $fn = 60);
+      cylinder(h=thick+0.2, r = center_piece_rad, $fn = 60);
     for (i = [0 : 5]) {
       rotate(i*360/6, [0,0,1]) {
 	translate([skrue_dist, 0, -0.1])
 	  cylinder(h = thick+0.2, r=skrue_dia/2, $fn = 20);
 	translate([skrue_dist, 0, thick-1.2])
-	  cylinder(h = thick+0.2, r=skrue_dia/2+1.1, $fn = 20);
+	  cylinder(h = thick+0.2, r=skrue_dia/2+1.2, $fn = 20);
       }
     }
   }
