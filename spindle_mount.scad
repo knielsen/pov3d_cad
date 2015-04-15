@@ -86,9 +86,7 @@ module pcb(thick) {
 module sides_transform() {
   translate([0,0,base_thick])
     rotate([0,0,90])
-      for (i = [0:$children-1]) {
-	child(i);
-      }
+      children();
 }
 
 
