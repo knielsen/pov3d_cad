@@ -7,12 +7,12 @@ mount_opt1 = false;
 mount_opt2 = true;
 
 spindle_radius = 25;
-squash = 0.82;
+squash = 0.9;
 
 base_thick = 2.5;
 base_thick2 = 7.5;
 base_radius = 40;
-axis_height = 64;
+axis_height = 69;
 axis_dia = 80;
 krave_high = 8;
 krave_thick = 2.5;
@@ -69,15 +69,15 @@ module krave(h, thick) {
 
 module pcb(thick) {
   color("DarkSlateGray", 0.3) {
-    translate([0,0,34])
+    translate([0,0,axis_height/2+2])
       rotate([0, pcb_angle, 0])
       rotate([0, 0, 90])
 	linear_extrude(height=thick, center=true)
 	  polygon(points = [[49,5.5], [48,16], [45,25], [33.5,34.5],
-			    [11,34.5], [5,34.5+6], [-5,34.5+6], [-11,34.5],
+			    [9,34.5], [5,34.5+8], [-5,34.5+8], [-9,34.5],
 			    [-33.5,34.5], [-45,25], [-48,16], [-49,5.5],
 			    [-49,-5.5], [-48,-16], [-45,-25], [-33.5,-34.5],
-			    [-11,-34.5], [-5,-(34.5+6)], [5,-(34.5+6)], [11,-34.5],
+			    [-9,-34.5], [-5,-(34.5+11)], [5,-(34.5+11)], [9,-34.5],
 			    [33.5,-34.5], [45,-25], [48,-16], [49,-5.5]]);
   }
 }
@@ -115,18 +115,18 @@ module sides_restrict() {
 	rotate([pcb_angle, 0, 0]) {
 	  translate([0, 37, -pcb_thick-12])
 	    cylinder(h = 24, r=3/2, $fn = 20);
-	  translate([0, -37, -pcb_thick-12])
+	  translate([0, -37-5, -pcb_thick-12])
 	    cylinder(h = 24, r=3/2, $fn = 20);
           if (mount_opt1) {
 	    translate([0, 37+10, -pcb_thick-1.5-nut_thick/2])
 	      cube([nut_wide, nut_wide+20, nut_thick], center=true);
-	    translate([0, -37-10, -pcb_thick-1.5-nut_thick/2])
+	    translate([0, -37-5-10, -pcb_thick-1.5-nut_thick/2])
 	      cube([nut_wide, nut_wide+20, nut_thick], center=true);
  	  }
 	  if (mount_opt2) {
             translate([0, 37, -0.8-3])
               hexagon(d=5.5+0.2, h=3+0.5, center=false);
-            translate([0, -37, -0.8-3])
+            translate([0, -37-5, -0.8-3])
               hexagon(d=5.5+0.2, h=3+0.5, center=false);
 	  }
 	}
@@ -158,7 +158,7 @@ module sides() {
 
 
 module highsupport() {
-  thick=5;
+  thick=8.2;
   width=10;
   intersection() {
     translate([-(axis_dia*squash/2-thick/2), 0, axis_height/2])
@@ -203,7 +203,7 @@ translate([0,0,-axis_height/2]) {
       if (enable_sides)
 	sides();
     }
-    translate([21, 0, 0])
+    translate([22.5, 0, 0])
       cylinder(r=1.5, h=100, center=true, $fn=20);
     translate([-24, 0, 0])
       cylinder(r=1.5, h=100, center=true, $fn=20);
@@ -217,13 +217,13 @@ translate([0,0,-axis_height/2]) {
 	  color("yellow") {
 	    translate([0, 37, -pcb_thick-11])
 	      cylinder(h = 11+0.2, r=3.3/2+0.3, $fn = 20);
-	    translate([0, -37, -pcb_thick-11])
+	    translate([0, -37-5, -pcb_thick-11])
 	      cylinder(h = 11+0.2, r=3.3/2+0.3, $fn = 20);
 	  }
 	  color("blue") {
 	    translate([0, 37, -0.8-6+0.1])
 	      hexagon(d=5.1, h=6, center=false);
-	    translate([0, -37, -0.8-6+0.1])
+	    translate([0, -37-5, -0.8-6+0.1])
 	      hexagon(d=5.1, h=6, center=false);
 	  }
 	}
