@@ -2,6 +2,7 @@ enable_krave = false;
 enable_pcb = false;
 enable_supports = true;
 enable_sides = true;
+enable_mount_thingies = true;
 mount_opt1 = false;
 mount_opt2 = true;
 
@@ -20,6 +21,7 @@ skrue_dist = 18.5/2;
 center_piece_rad = 5.5+0.3;
 pcb_angle=37.5;
 pcb_thick = 0.8;
+sides_thick=1.0;
 
 led_thick=0.25;
 led_protude=0.62;
@@ -140,8 +142,8 @@ module sides() {
       difference() {
 	sides_restrict();
 	sides_transform()
-	  scale([1,squash,1])
-	    cylinder(r=axis_dia/2-1, h=axis_height*2, center=false);
+	  scale([1, (squash*(axis_dia/2)-sides_thick)/((axis_dia/2)-sides_thick), 1])
+	    cylinder(r=axis_dia/2-sides_thick, h=axis_height*2, center=false);
       }
       intersection() {
 	sides_restrict();
@@ -177,31 +179,55 @@ module lowsupport() {
 }
 
 
-if (enable_krave) {
-  krave (krave_high, krave_thick);
-}
-
-if (enable_supports) {
-  color("darkgreen") {
-    highsupport();
-    lowsupport();
+translate([0,0,-axis_height/2]) {
+  if (enable_krave) {
+    krave (krave_high, krave_thick);
   }
-}
 
-
-
-if (enable_pcb) {
-  pcb(pcb_thick);
-}
-
-difference() {
-  union() {
-    base(base_thick, base_radius);
-    if (enable_sides)
-      sides();
+  if (enable_supports) {
+    color("darkgreen") {
+      highsupport();
+      lowsupport();
+    }
   }
-  translate([21, 0, 0])
-    cylinder(r=1.5, h=100, center=true, $fn=20);
-  translate([-24, 0, 0])
-    cylinder(r=1.5, h=100, center=true, $fn=20);
+
+
+
+  if (enable_pcb) {
+    pcb(pcb_thick);
+  }
+
+  difference() {
+    union() {
+      base(base_thick, base_radius);
+      if (enable_sides)
+	sides();
+    }
+    translate([21, 0, 0])
+      cylinder(r=1.5, h=100, center=true, $fn=20);
+    translate([-24, 0, 0])
+      cylinder(r=1.5, h=100, center=true, $fn=20);
+  }
+
+
+  if (enable_mount_thingies) {
+    sides_transform() {
+      translate([0, 0, axis_height/2-led_dot_offset]) {
+	rotate([pcb_angle, 0, 0]) {
+	  color("yellow") {
+	    translate([0, 37, -pcb_thick-11])
+	      cylinder(h = 11+0.2, r=3.3/2+0.3, $fn = 20);
+	    translate([0, -37, -pcb_thick-11])
+	      cylinder(h = 11+0.2, r=3.3/2+0.3, $fn = 20);
+	  }
+	  color("blue") {
+	    translate([0, 37, -0.8-6+0.1])
+	      hexagon(d=5.1, h=6, center=false);
+	    translate([0, -37, -0.8-6+0.1])
+	      hexagon(d=5.1, h=6, center=false);
+	  }
+	}
+      }
+    }
+  }
 }
