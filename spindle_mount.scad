@@ -235,6 +235,12 @@ module spindle_mount() {
   }
 }
 
-translate([0,0,-axis_height/2]) {
-  spindle_mount();
+
+intersection() {
+  translate([0,0,-axis_height/2]) {
+    spindle_mount();
+  }
+  // Test prints:
+  //translate([19,-15,-40]) cube([40,30,40]);
+  //translate([-60,-15,10]) cube([40,30,40]);
 }
