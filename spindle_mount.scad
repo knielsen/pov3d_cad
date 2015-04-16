@@ -196,7 +196,7 @@ module lowsupport() {
 }
 
 
-translate([0,0,-axis_height/2]) {
+module spindle_mount() {
   if (enable_krave) {
     krave (krave_high, krave_thick);
   }
@@ -207,8 +207,6 @@ translate([0,0,-axis_height/2]) {
       lowsupport();
     }
   }
-
-
 
   if (enable_pcb) {
     pcb(pcb_thick);
@@ -226,7 +224,6 @@ translate([0,0,-axis_height/2]) {
       cylinder(r=1.5, h=100, center=true, $fn=20);
   }
 
-
   if (enable_mount_thingies) {
     sides_transform() {
       translate([0, 0, axis_height/2-led_dot_offset]) {
@@ -236,4 +233,8 @@ translate([0,0,-axis_height/2]) {
       }
     }
   }
+}
+
+translate([0,0,-axis_height/2]) {
+  spindle_mount();
 }
