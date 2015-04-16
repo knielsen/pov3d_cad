@@ -2,9 +2,10 @@ enable_krave = false;
 enable_pcb = false;
 enable_supports = true;
 enable_sides = true;
-enable_mount_thingies = true;
+enable_mount_thingies = false;
 mount_opt1 = false;
-mount_opt2 = true;
+mount_opt2 = false;
+mount_opt3 = true;
 
 spindle_radius = 25;
 squash = 0.9;
@@ -95,6 +96,21 @@ module hexagon(d, h, center=true) {
 }
 
 
+module mount_thingies() {
+  color("yellow") {
+    translate([0, 37, -pcb_thick-11])
+      cylinder(h = 11+0.2, r=3.3/2+0.3, $fn = 20);
+    translate([0, -37-5, -pcb_thick-11])
+      cylinder(h = 11+0.2, r=3.3/2+0.3, $fn = 20);
+  }
+  color("blue") {
+    translate([0, 37, -0.8-6+0.1])
+      hexagon(d=5.1, h=6, center=false);
+    translate([0, -37-5, -0.8-6+0.1])
+      hexagon(d=5.1, h=6, center=false);
+  }
+}
+
 module sides_restrict() {
   nut_thick=1.5;
   nut_wide=6;
@@ -126,6 +142,9 @@ module sides_restrict() {
               hexagon(d=5.5+0.2, h=3+0.5, center=false);
             translate([0, -37-5, -0.8-3])
               hexagon(d=5.5+0.2, h=3+0.5, center=false);
+	  }
+	  if (mount_opt3) {
+	    mount_thingies();
 	  }
 	}
       }
@@ -212,18 +231,7 @@ translate([0,0,-axis_height/2]) {
     sides_transform() {
       translate([0, 0, axis_height/2-led_dot_offset]) {
 	rotate([pcb_angle, 0, 0]) {
-	  color("yellow") {
-	    translate([0, 37, -pcb_thick-11])
-	      cylinder(h = 11+0.2, r=3.3/2+0.3, $fn = 20);
-	    translate([0, -37-5, -pcb_thick-11])
-	      cylinder(h = 11+0.2, r=3.3/2+0.3, $fn = 20);
-	  }
-	  color("blue") {
-	    translate([0, 37, -0.8-6+0.1])
-	      hexagon(d=5.1, h=6, center=false);
-	    translate([0, -37-5, -0.8-6+0.1])
-	      hexagon(d=5.1, h=6, center=false);
-	  }
+	  mount_thingies();
 	}
       }
     }
