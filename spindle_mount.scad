@@ -43,7 +43,7 @@ module battery(bat_x, bat_y, bat_thick) {
 module base(thick, rad) {
   difference() {
     scale([squash,1,1])
-      cylinder(h = thick, r = rad);
+      cylinder(h = thick, r1= rad-0.75*thick, r2 = rad);
     translate([0,0,-0.1])
       cylinder(h=thick+0.2, r = center_piece_rad, $fn = 60);
     for (i = [0 : 5]) {
@@ -99,15 +99,15 @@ module hexagon(d, h, center=true) {
 module mount_thingies() {
   color("yellow") {
     translate([0, 37, -pcb_thick-11])
-      cylinder(h = 11+0.2, r=3.3/2+0.3, $fn = 20);
+      cylinder(h = 11+0.2, r=3.3/2+0.45, $fn = 20);
     translate([0, -37-5, -pcb_thick-11])
-      cylinder(h = 11+0.2, r=3.3/2+0.3, $fn = 20);
+      cylinder(h = 11+0.2, r=3.3/2+0.45, $fn = 20);
   }
   color("blue") {
     translate([0, 37, -0.8-6+0.1])
-      hexagon(d=5.1, h=6, center=false);
+      hexagon(d=5.1+0.1, h=6, center=false);
     translate([0, -37-5, -0.8-6+0.1])
-      hexagon(d=5.1, h=6, center=false);
+      hexagon(d=5.1+0.1, h=6, center=false);
   }
 }
 
@@ -219,9 +219,9 @@ module spindle_mount() {
 	sides();
     }
     translate([22.5, 0, 0])
-      cylinder(r=1.5, h=100, center=true, $fn=20);
+      cylinder(r=1.5+0.2, h=100, center=true, $fn=20);
     translate([-24, 0, 0])
-      cylinder(r=1.5, h=100, center=true, $fn=20);
+      cylinder(r=1.5+0.2, h=100, center=true, $fn=20);
   }
 
   if (enable_mount_thingies) {
