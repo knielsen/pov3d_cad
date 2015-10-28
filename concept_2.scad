@@ -1,13 +1,13 @@
-$fn = 40;
+$fn = 140;
 
 // "extra" is extra spacing around the axis, to avoid too cramped innermost circle.
 extra = -27.48;
 
 axis_height = 170;
-axis_dia = 198;
+axis_dia = 199;
 pcb_thick = 1.0;
-pcb_width=150;
-pcb_len=198;
+pcb_width=200;
+pcb_len=200;
 pcb_angle=37.5;
 
 /* 0606 LED */
@@ -57,11 +57,16 @@ module axis() {
 }
 
 module pcb() {
-  W = (n_layers-1)*h_pix/tan(pcb_angle)/2+extra;
-  L = (n_leds-1)*l_pix/2;
   translate([0,0,-led_dot_offset]) {
     translate([0,0,-pcb_thick/2])
       cube(size=[pcb_len,pcb_width,pcb_thick], center=true);
+  }
+}
+
+module pcb_leds() {
+  W = (n_layers-1)*h_pix/tan(pcb_angle)/2+extra;
+  L = (n_leds-1)*l_pix/2;
+  translate([0,0,-led_dot_offset]) {
     for (r = [0/*,180*/]) {
       rotate([0,0,r]) {
         for (i = [0:n_layers-1]) {
@@ -97,7 +102,19 @@ module pcb_place() {
   }
 }
 
+module pcb_leds_place() {
+  translate([0,0,axis_height/2])
+  {
+    rotate([pcb_angle,0,0])
+      pcb_leds();
+  }
+}
+
 translate([0,0,-axis_height/2]) rotate([0,0,$t*360]) {
   axis();
-  pcb_place();
+  intersection() {
+    pcb_place();
+    cylinder(r=axis_dia/2, h=400, center=true);
+  }
+  pcb_leds_place();
 }
