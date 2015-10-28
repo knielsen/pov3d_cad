@@ -43,7 +43,7 @@ module battery(bat_x, bat_y, bat_thick) {
 module base(thick, rad) {
   difference() {
     scale([squash,1,1])
-      cylinder(h = thick, r1= rad-0.75*thick, r2 = rad);
+      cylinder(h = thick, r1= rad-0.75*thick, r2 = rad, $fn=120);
     translate([0,0,-0.1])
       cylinder(h=thick+0.2, r = center_piece_rad, $fn = 60);
     for (i = [0 : 5]) {
@@ -61,7 +61,7 @@ module base(thick, rad) {
 module krave(h, thick) {
   translate([0,0,-h]) {
     difference() {
-      cylinder(h = h, r = spindle_radius/2+thick);
+      cylinder(h = h, r = spindle_radius/2+thick, $fn = 60);
       cylinder(h = h, r = spindle_radius/2, $fn = 60);
     }
   }
@@ -118,7 +118,7 @@ module sides_restrict() {
   sides_transform() {
     difference() {
       scale([1,squash,1])
-        cylinder(r=axis_dia/2, h=axis_height, center=false);
+        cylinder(r=axis_dia/2, h=axis_height, center=false, $fn=120);
       translate([0, 0, axis_height/2-led_dot_offset])
 	rotate([pcb_angle, 0, 0]) {
 	  translate([0, 0, 100-pcb_thick]) {
@@ -160,7 +160,7 @@ module sides() {
 	sides_restrict();
 	sides_transform()
 	  scale([1, (squash*(axis_dia/2)-sides_thick)/((axis_dia/2)-sides_thick), 1])
-	    cylinder(r=axis_dia/2-sides_thick, h=axis_height*2, center=false);
+	    cylinder(r=axis_dia/2-sides_thick, h=axis_height*2, center=false, $fn=120);
       }
       intersection() {
 	sides_restrict();
