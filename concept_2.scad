@@ -73,7 +73,8 @@ module pcb_leds() {
           assign(y=(i-(n_layers-1)/2)*h_pix/tan(pcb_angle)) {
             for (j = [0:n_leds-1]) {
 if (!( (i<1||i>=n_layers-1)&&j<5 ) &&
-    !( (i<2||i>=n_layers-2)&&j<3 ) &&
+    !( (i<2||i>=n_layers-2)&&j<4 ) &&
+    !( (i<3||i>=n_layers-3)&&j<3 ) &&
     !( (i<4||i>=n_layers-4)&&j<2 ) &&
     !( (i<6||i>=n_layers-6)&&j<1 ) )
               assign(x=sqrt((W+j*l_pix)*(W+j*l_pix)-y*y)) {
