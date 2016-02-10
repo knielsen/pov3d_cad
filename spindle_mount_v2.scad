@@ -1,18 +1,13 @@
 enable_krave = false;
 enable_pcb = true;
-enable_supports = false;
+enable_supports = true;
 enable_sides = true;
 enable_mount_thingies = true;
-mount_opt1 = false;
-mount_opt2 = false;
-mount_opt3 = true;
 
 // Fine subdivisions, for production run
-//$fa = 1;
-//$fs = 0.1;
+//$fa = 1; $fs = 0.1;
 // Coarse, but faster, subdivisions, for testing.
-$fa = 8;
-$fs = 0.8;
+$fa = 8; $fs = 0.8;
 
 epsilon = 0.001;
 
@@ -73,7 +68,6 @@ bat_thick = 11;
 
 module battery(bat_x, bat_y, bat_thick) {
   translate([0, 0, base_thick3]) {
-    color("cyan")
     translate([0,0,bat_thick/2])
       linear_extrude(height = bat_thick, center = true) {
         polygon(points = [[-bat_x/2,-bat_y/2], [bat_x/2,-bat_y/2],
@@ -114,30 +108,28 @@ module krave(h, thick) {
 
 
 module pcb(thick) {
-  color("DarkSlateGray", 0.3) {
-    translate([0,0,base_thick+axis_height])
-      rotate([0, pcb_angle, 0])
-      rotate([0, 0, 90])
-      translate([0, (thick+led_active_height)*tan(pcb_angle), 0]) {
-        difference() {
-	  union() {
-	    linear_extrude(height=thick, center=false)
-	      polygon(points = [[49,5.5], [48,16], [45,25], [33.5,34.5],
-				[8,34.5], [5,40.5], [-5,40.5], [-8,34.5],
-				[-33.5,34.5], [-45,25], [-48,16], [-49,5.5],
-				[-49,-5.5], [-48,-16], [-45,-25], [-33.5,-34.5],
-				[-12.5,-34.5], [-5,-49.5], [5,-49.5], [12.5,-34.5],
-				[33.5,-34.5], [45,-25], [48,-16], [49,-5.5]]);
-	    translate([0, 0, thick])
-	      cylinder(h = led_active_height, r = 0.3, center = false);
-	  }
-	  translate([0, mount_center_upper, 0])
-	    cylinder(h = 20, r = 3.6/2, center=true);
-	  translate([0, mount_center_lower, 0])
-	    cylinder(h = 20, r = 3.6/2, center=true);
+  translate([0,0,base_thick+axis_height])
+    rotate([0, pcb_angle, 0])
+    rotate([0, 0, 90])
+    translate([0, (thick+led_active_height)*tan(pcb_angle), 0]) {
+      difference() {
+        union() {
+          linear_extrude(height=thick, center=false)
+            polygon(points = [[49,5.5], [48,16], [45,25], [33.5,34.5],
+                              [8,34.5], [5,40.5], [-5,40.5], [-8,34.5],
+                              [-33.5,34.5], [-45,25], [-48,16], [-49,5.5],
+                              [-49,-5.5], [-48,-16], [-45,-25], [-33.5,-34.5],
+                              [-12.5,-34.5], [-5,-49.5], [5,-49.5], [12.5,-34.5],
+                              [33.5,-34.5], [45,-25], [48,-16], [49,-5.5]]);
+          translate([0, 0, thick])
+            cylinder(h = led_active_height, r = 0.3, center = false);
         }
+        translate([0, mount_center_upper, 0])
+          cylinder(h = 20, r = 3.6/2, center=true);
+        translate([0, mount_center_lower, 0])
+          cylinder(h = 20, r = 3.6/2, center=true);
       }
-  }
+    }
 }
 
 
@@ -154,18 +146,14 @@ module hexagon(d, h, center=true) {
 
 
 module mount_thingies() {
-  color("yellow") {
-    translate([0, 37, -pcb_thick-11])
-      cylinder(h = 11+0.2, r=3.3/2+0.45);
-    translate([0, -37-5, -pcb_thick-11])
-      cylinder(h = 11+0.2, r=3.3/2+0.45);
-  }
-  color("blue") {
-    translate([0, 37, -0.8-6+0.1])
-      hexagon(d=5.1+0.1, h=6, center=false);
-    translate([0, -37-5, -0.8-6+0.1])
-      hexagon(d=5.1+0.1, h=6, center=false);
-  }
+  translate([0, 37, -pcb_thick-11])
+    cylinder(h = 11+0.2, r=3.3/2+0.45);
+  translate([0, -37-5, -pcb_thick-11])
+    cylinder(h = 11+0.2, r=3.3/2+0.45);
+  translate([0, 37, -0.8-6+0.1])
+    hexagon(d=5.1+0.1, h=6, center=false);
+  translate([0, -37-5, -0.8-6+0.1])
+    hexagon(d=5.1+0.1, h=6, center=false);
 }
 
 module sides_restrict() {
@@ -191,21 +179,7 @@ module sides_restrict() {
 	    cylinder(h = 24, r=3/2);
 	  translate([0, -37-5, -pcb_thick-12])
 	    cylinder(h = 24, r=3/2);
-          if (mount_opt1) {
-	    translate([0, 37+10, -pcb_thick-1.5-nut_thick/2])
-	      cube([nut_wide, nut_wide+20, nut_thick], center=true);
-	    translate([0, -37-5-10, -pcb_thick-1.5-nut_thick/2])
-	      cube([nut_wide, nut_wide+20, nut_thick], center=true);
- 	  }
-	  if (mount_opt2) {
-            translate([0, 37, -0.8-3])
-              hexagon(d=5.5+0.2, h=3+0.5, center=false);
-            translate([0, -37-5, -0.8-3])
-              hexagon(d=5.5+0.2, h=3+0.5, center=false);
-	  }
-	  if (mount_opt3) {
-	    mount_thingies();
-	  }
+          mount_thingies();
 	}
       }
     }
@@ -254,25 +228,29 @@ module pcb_support() {
 }
 
 module sides() {
-  color("orange", 0.7) {
-    difference() {
-      sides_restrict();
-      sides_transform()
-        cylinder(r=axis_dia/2-sides_thick, h=axis_height*2, center=false);
-    }
+  difference() {
+    sides_restrict();
+    sides_transform()
+      cylinder(r=axis_dia/2-sides_thick, h=axis_height*2, center=false);
   }
 }
 
 
 module highsupport() {
-  thick=19.2;
+  thick=100;
   width=10;
+  support_height = 2*axis_height;
+  extra_bit = 1;
+  magic_slope = 0.45;
   intersection() {
     sides_transform()
-      translate([0, 0, axis_height])
-rotate([pcb_angle, 0, 0])
-    translate([0, mount_center_upper+thick/2, -2*axis_height/2])
-      cube([width, thick, 2*axis_height], center=true);
+      multmatrix([[1, 0, 0, 0],
+                  [0, 1, -magic_slope, 0],
+                  [0, 0, 1, 0],
+                  [0, 0, 0, 1]])
+      translate([0, (axis_dia/2-sides_thick-extra_bit), 0])
+      translate([0, thick/2, support_height/2])
+        cube([width, thick, support_height], center=true);
     sides_restrict();
   }
 }
@@ -295,10 +273,8 @@ module spindle_mount() {
   }
 
   if (enable_supports) {
-    color("darkgreen") {
-      highsupport();
-      lowsupport();
-    }
+    highsupport();
+    lowsupport();
   }
 
   if (enable_pcb) {
