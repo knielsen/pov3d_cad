@@ -5,9 +5,9 @@ enable_sides = true;
 enable_mount_thingies = true;
 
 // Fine subdivisions, for production run
-//$fa = 1; $fs = 0.1;
+$fa = 1; $fs = 0.1;
 // Coarse, but faster, subdivisions, for testing.
-$fa = 8; $fs = 0.8;
+//$fa = 8; $fs = 0.8;
 
 epsilon = 0.001;
 
