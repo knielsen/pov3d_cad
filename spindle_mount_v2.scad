@@ -100,10 +100,12 @@ module base(thick, thick2, rad) {
 
 
 module krave(h, thick) {
+  extra = 0.1754;   // To avoid rendering glitches
   translate([0,0,-h]) {
     difference() {
       cylinder(h = h, r = spindle_radius/2+thick);
-      cylinder(h = h, r = spindle_radius/2);
+      translate([0, 0, -extra])
+        cylinder(h = h+2*extra, r = spindle_radius/2);
     }
   }
 }
