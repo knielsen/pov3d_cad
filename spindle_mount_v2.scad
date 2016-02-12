@@ -257,6 +257,7 @@ module sides() {
       translate([0, 0, -extra])
         cylinder(r=axis_dia/2-sides_thick, h=axis_height*2+2*extra, center=false);
   }
+  pcb_support();
 }
 
 
@@ -318,7 +319,6 @@ module spindle_mount() {
 
   if (enable_sides) {
     sides();
-    pcb_support();
   }
 
   if (enable_mount_thingies) {
