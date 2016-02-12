@@ -156,9 +156,8 @@ module mount_thingies() {
     hexagon(d=5.1+0.1, h=6, center=false);
 }
 
-module sides_restrict() {
-  nut_thick=1.5;
-  nut_wide=6;
+
+module spindle_mount_inner() {
   truncate_cube_side=200;
   pcb_top_offset=40.5;
 
@@ -173,6 +172,20 @@ module sides_restrict() {
         }
       translate([0, 0, axis_height + pcb_top_offset*sin(pcb_angle) + truncate_cube_side/2])
       	cube([truncate_cube_side, truncate_cube_side, truncate_cube_side], center=true);
+    }
+  }
+}
+
+
+module sides_restrict() {
+  nut_thick=1.5;
+  nut_wide=6;
+  truncate_cube_side=200;
+  pcb_top_offset=40.5;
+
+  difference() {
+    spindle_mount_inner();
+    sides_transform() {
       translate([0, 0, axis_height ]) {
 	rotate([pcb_angle, 0, 0]) {
 	  translate([0, 37, -pcb_thick-12])
@@ -230,7 +243,7 @@ module pcb_support() {
 module sides() {
   extra = 10;  // Extra height to avoid artifacts from co-planer polygons
   difference() {
-    sides_restrict();
+    spindle_mount_inner();
     sides_transform()
       translate([0, 0, -extra])
         cylinder(r=axis_dia/2-sides_thick, h=axis_height*2+2*extra, center=false);
