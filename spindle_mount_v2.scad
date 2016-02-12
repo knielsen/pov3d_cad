@@ -30,18 +30,18 @@ axis_height = 30.5;
 // The outer dimension of the mount.
 axis_dia = 100;
 // Dimensions of the krave around the motor spindle.
-krave_high = 8;
+krave_high = 7;
 krave_thick = 2.5;
 // Diameter of mounting screws, including a bit of slack to account for
 // 3D-printer tolerance.
-skrue_dia = 2.2;
+skrue_dia = 2 + 0.2;
 // Diameter of mounting screw heads, including a bit of slack for easier fit.
-skrue_head = skrue_dia + 2.4;
+skrue_head = 3.9 + 0.6;
 // Distance of mounting screw hole center from motor spindle center.
-skrue_dist = 10.0;
+skrue_dist = 10.15;
 // Radius of the hole in the base to fit on top of the center disk of the
 // motor spindle, plus a bit of slack to account for 3D printing tolerances.
-center_piece_rad = 7.5+0.3;
+center_piece_rad = 14.5/2+0.3;
 // Radius of the cutout in the base fill-in to provide access to mounting
 // screws.
 center_piece_space = skrue_dist + skrue_dia + 2;
