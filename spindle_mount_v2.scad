@@ -292,6 +292,8 @@ module lowsupport() {
 
 
 module spindle_mount() {
+  extra = 1.13;   // To avoid rendering glitches
+
   if (enable_krave) {
     krave (krave_high, krave_thick);
   }
@@ -306,18 +308,17 @@ module spindle_mount() {
   }
 
   difference() {
-    union() {
-      base(base_thick, base_thick2, axis_dia/2);
-      if (enable_sides) {
-	sides();
-        pcb_support();
-      }
-    }
+    base(base_thick, base_thick2, axis_dia/2);
     // Holes for screws holding the velkro strips.
-    translate([bat_width/2+5, 0, 0])
-      cylinder(r=1.5+0.2, h=100, center=true);
-    translate([-(bat_width/2+6.5), 0, 0])
-      cylinder(r=1.5+0.2, h=100, center=true);
+    translate([bat_width/2+5, 0, -extra])
+      cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
+    translate([-(bat_width/2+6.5), 0, -extra])
+      cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
+  }
+
+  if (enable_sides) {
+    sides();
+    pcb_support();
   }
 
   if (enable_mount_thingies) {
