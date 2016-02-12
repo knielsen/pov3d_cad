@@ -9,8 +9,6 @@ $fa = 1; $fs = 0.1;
 // Coarse, but faster, subdivisions, for testing.
 //$fa = 8; $fs = 0.8;
 
-epsilon = 0.001;
-
 // The outer radius of the motor spindle. Used when enable_krave is true,
 // to put a "krave" around the spindle (but might be hard to print).
 spindle_radius = 25;
@@ -221,6 +219,8 @@ module pcb_support() {
   // How far, in the X direction, the support exists (from center outwards).
   support_extent = 20;
   support_height = support_width / tan(support_angle);
+  extra = 0.0571;   // To avoid rendering gliches
+
   sides_transform() {
     translate([0, 0, axis_height]) {
       intersection() {
@@ -234,16 +234,16 @@ module pcb_support() {
             translate([0, 0, - support_height]) {
               difference() {
                 cylinder(r=axis_dia/2, h=support_height, center=false);
-                translate([0, 0, -epsilon])
+                translate([0, 0, -extra])
                   cylinder(r1=axis_dia/2, r2=axis_dia/2-support_width,
-                           h=support_height+2*epsilon, center=false);
+                           h=support_height+2*extra, center=false);
               }
             }
           }
           // Cutout to make room for hall sensor.
           translate([-40, -21, 0]) cube([20, 20, axis_dia*4], center=true);
         }
-        cube([axis_dia+epsilon, 2*support_extent, 4*axis_height], center=true);
+        cube([axis_dia+extra, 2*support_extent, 4*axis_height], center=true);
       }
     }
   }
