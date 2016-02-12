@@ -160,19 +160,27 @@ module mount_thingies() {
 
 
 module spindle_mount_inner() {
-  truncate_cube_side=200;
+  cutoff_z = axis_height + pcb_top_offset*sin(pcb_angle);
+  extra = 10;   // Extra to avoid rendering artifacts from co-planar polygons
+  truncate_cube_height = axis_height*2 + base_thick + extra;
+  truncate_cube_width=axis_dia + extra;
+  // A an easy, conservative value that is large enough.
+  slant_cube_height = axis_height + axis_dia/2 + extra;
+  slant_cube_width = axis_dia + extra;
+  slant_cube_length = axis_dia/cos(pcb_angle) + extra;
 
   sides_transform() {
-    difference() {
+    intersection() {
       cylinder(r=axis_dia/2, h=axis_height*2, center=false);
-      translate([0, 0, axis_height])
+      translate([0, 0, axis_height]) {
 	rotate([pcb_angle, 0, 0]) {
-	  translate([0, 0, truncate_cube_side/2]) {
-	    cube([truncate_cube_side, truncate_cube_side, truncate_cube_side], center=true);
+	  translate([0, 0, -slant_cube_height/2]) {
+	    cube([slant_cube_width, slant_cube_length, slant_cube_height], center=true);
           }
         }
-      translate([0, 0, axis_height + pcb_top_offset*sin(pcb_angle) + truncate_cube_side/2])
-      	cube([truncate_cube_side, truncate_cube_side, truncate_cube_side], center=true);
+      }
+      translate([0, 0, cutoff_z - truncate_cube_height/2])
+      	cube([truncate_cube_width, truncate_cube_width, truncate_cube_height], center=true);
     }
   }
 }
