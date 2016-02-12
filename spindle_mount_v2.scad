@@ -110,27 +110,27 @@ module krave(h, thick) {
 
 
 module pcb(thick) {
+  extra = 0.3;    // To prevent rendering glitches
+
   translate([0,0,base_thick+axis_height])
     rotate([0, pcb_angle, 0])
     rotate([0, 0, 90])
     translate([0, (thick+led_active_height)*tan(pcb_angle), 0]) {
       difference() {
-        union() {
-          linear_extrude(height=thick, center=false)
-            polygon(points = [[49,5.5], [48,16], [45,25], [33.5,34.5],
-                              [8,34.5], [5,40.5], [-5,40.5], [-8,34.5],
-                              [-33.5,34.5], [-45,25], [-48,16], [-49,5.5],
-                              [-49,-5.5], [-48,-16], [-45,-25], [-33.5,-34.5],
-                              [-12.5,-34.5], [-5,-49.5], [5,-49.5], [12.5,-34.5],
-                              [33.5,-34.5], [45,-25], [48,-16], [49,-5.5]]);
-          translate([0, 0, thick])
-            cylinder(h = led_active_height, r = 0.3, center = false);
-        }
-        translate([0, mount_center_upper, 0])
-          cylinder(h = 20, r = 3.6/2, center=true);
-        translate([0, mount_center_lower, 0])
-          cylinder(h = 20, r = 3.6/2, center=true);
+        linear_extrude(height=thick, center=false)
+          polygon(points = [[49,5.5], [48,16], [45,25], [33.5,34.5],
+                            [8,34.5], [5,40.5], [-5,40.5], [-8,34.5],
+                            [-33.5,34.5], [-45,25], [-48,16], [-49,5.5],
+                            [-49,-5.5], [-48,-16], [-45,-25], [-33.5,-34.5],
+                            [-12.5,-34.5], [-5,-49.5], [5,-49.5], [12.5,-34.5],
+                            [33.5,-34.5], [45,-25], [48,-16], [49,-5.5]]);
+        translate([0, mount_center_upper, -extra])
+          cylinder(h = thick+2*extra, r = 3.6/2, center=false);
+        translate([0, mount_center_lower, -extra])
+          cylinder(h = thick+2*extra, r = 3.6/2, center=false);
       }
+      translate([0, 0, thick])
+        cylinder(h = led_active_height, r = 0.3, center = false);
     }
 }
 
