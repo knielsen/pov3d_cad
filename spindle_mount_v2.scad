@@ -395,7 +395,11 @@ module spindle_mount() {
 intersection() {
   spindle_mount();
 
-  // Test prints:
-  //translate([19,-15,-40+axis_height/2]) cube([40,30,40]);
-  //translate([-60,-15,10+axis_height/2]) cube([40,30,40]);
+  // Test prints.
+  // Bottom mounting holes for harddisk spindle.
+  //cube([35, 35, 40], center=true);
+  // Upper support:
+  //translate([-60,-15,38+axis_height/2]) cube([40,30,40]);
+  // Lower support:
+  //translate([15,-15,-40+axis_height/2]) cube([40,30,60]);
 }
