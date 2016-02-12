@@ -325,20 +325,13 @@ module sides() {
 
 
 module highsupport() {
-  thick=100;
-  width=10;
+  thick = axis_dia/2;
+  width = 10;
   support_height = 2*axis_height;
-  extra_bit = 1;
-  magic_slope = 0.45;
   intersection() {
     difference() {
-      sides_coords()
-        multmatrix([[1, 0, 0, 0],
-                    [0, 1, -magic_slope, 0],
-                    [0, 0, 1, 0],
-                    [0, 0, 0, 1]])
-        translate([0, (axis_dia/2-sides_thick-extra_bit), 0])
-        translate([0, thick/2, support_height/2])
+      led_coords()
+        translate([0, mount_center_upper + thick/2 - width/2, -support_height/2])
           cube([width, thick, support_height], center=true);
       mount_thingy_upper(true);
     }
@@ -348,12 +341,14 @@ module highsupport() {
 
 
 module lowsupport() {
-  thick=23;
-  width=10;
+  thick = axis_dia/2;
+  width = 10;
+  height = axis_height;
   intersection() {
     difference() {
-      translate([axis_dia/2-thick/2, 0, axis_height/2])
-        cube([thick, width, axis_height], center=true);
+      led_coords()
+        translate([0, mount_center_lower - thick/2 + width/2, -height/2])
+          cube([width, thick, height], center=true);
       mount_thingy_lower(true);
     }
     spindle_mount_inner();
