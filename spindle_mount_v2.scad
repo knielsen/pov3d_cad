@@ -135,7 +135,10 @@ module pcb(thick) {
 }
 
 
-module sides_transform() {
+// Switch to coordinates used to model the side of the spindle_mount.
+// These coordinates are centered at the top of the base, with the x-axis
+// pointing towards the right (LED-side of the PCB), and Z upwards.
+module sides_coords() {
   translate([0,0,base_thick])
     rotate([0,0,90])
       children();
@@ -169,7 +172,7 @@ module spindle_mount_inner() {
   slant_cube_width = axis_dia + extra;
   slant_cube_length = axis_dia/cos(pcb_angle) + extra;
 
-  sides_transform() {
+  sides_coords() {
     intersection() {
       cylinder(r=axis_dia/2, h=axis_height*2, center=false);
       translate([0, 0, axis_height]) {
@@ -192,7 +195,7 @@ module sides_restrict() {
 
   difference() {
     spindle_mount_inner();
-    sides_transform() {
+    sides_coords() {
       translate([0, 0, axis_height ]) {
 	rotate([pcb_angle, 0, 0]) {
 	  translate([0, 37, -pcb_thick-12])
@@ -221,7 +224,7 @@ module pcb_support() {
   support_height = support_width / tan(support_angle);
   extra = 0.0571;   // To avoid rendering gliches
 
-  sides_transform() {
+  sides_coords() {
     translate([0, 0, axis_height]) {
       intersection() {
         difference() {
@@ -253,7 +256,7 @@ module sides() {
   extra = 10;  // Extra height to avoid artifacts from co-planer polygons
   difference() {
     spindle_mount_inner();
-    sides_transform()
+    sides_coords()
       translate([0, 0, -extra])
         cylinder(r=axis_dia/2-sides_thick, h=axis_height*2+2*extra, center=false);
   }
@@ -268,7 +271,7 @@ module highsupport() {
   extra_bit = 1;
   magic_slope = 0.45;
   intersection() {
-    sides_transform()
+    sides_coords()
       multmatrix([[1, 0, 0, 0],
                   [0, 1, -magic_slope, 0],
                   [0, 0, 1, 0],
@@ -322,7 +325,7 @@ module spindle_mount() {
   }
 
   if (enable_mount_thingies) {
-    sides_transform() {
+    sides_coords() {
       translate([0, 0, axis_height]) {
 	rotate([pcb_angle, 0, 0]) {
 	  mount_thingies();
