@@ -61,6 +61,8 @@ sides_thick=1.0;
 // Location of the mounting holes for the PCB.
 mount_center_upper=35.35;
 mount_center_lower=-43.65;
+// Distance from pcb center to top edge of pcb.
+pcb_top_offset=40.5;
 // Battery cutout dimensions.
 bat_width = 32;
 bat_length = 52;
@@ -159,7 +161,6 @@ module mount_thingies() {
 
 module spindle_mount_inner() {
   truncate_cube_side=200;
-  pcb_top_offset=40.5;
 
   sides_transform() {
     difference() {
@@ -180,8 +181,6 @@ module spindle_mount_inner() {
 module sides_restrict() {
   nut_thick=1.5;
   nut_wide=6;
-  truncate_cube_side=200;
-  pcb_top_offset=40.5;
 
   difference() {
     spindle_mount_inner();
