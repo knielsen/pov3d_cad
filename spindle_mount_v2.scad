@@ -2,7 +2,7 @@ enable_krave = false;
 enable_pcb = true;
 enable_supports = true;
 enable_sides = true;
-enable_mount_thingies = true;
+enable_mount_thingies = false;
 
 // Fine subdivisions, for production run
 $fa = 1; $fs = 0.1;
@@ -156,7 +156,7 @@ module krave(h, thick) {
 module pcb(thick) {
   extra = 0.3;    // To prevent rendering glitches
 
-  led_coords() {
+  %led_coords() {
     difference() {
       linear_extrude(height=thick, center=false)
         polygon(points = [[49,5.5], [48,16], [45,25], [33.5,34.5],
