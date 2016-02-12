@@ -136,6 +136,7 @@ module base(thick, thick2, rad) {
       }
     }
     battery(bat_width, bat_length, bat_thick);
+    mount_thingy_lower(true);
   }
 }
 
@@ -180,15 +181,64 @@ module hexagon(d, h, center=true) {
 }
 
 
-module mount_thingies() {
-  translate([0, 37, -pcb_thick-11])
-    cylinder(h = 11+0.2, r=3.3/2+0.45);
-  translate([0, -37-5, -pcb_thick-11])
-    cylinder(h = 11+0.2, r=3.3/2+0.45);
-  translate([0, 37, -0.8-6+0.1])
-    hexagon(d=5.1+0.1, h=6, center=false);
-  translate([0, -37-5, -0.8-6+0.1])
-    hexagon(d=5.1+0.1, h=6, center=false);
+// The "mount thingies" are the brass motherboard standoffs used to mount the
+// PCB to the spindle mount.
+//
+// When EXTRA is passed as true, extra slack is added around, as needed
+// to be used in difference() to produce a hole suitable for inserting and
+// gluing in the standoffs.
+
+module mount_thingy_int2(center,
+                        cyl_base, cyl_dia, cyl_height,
+                        hex_base, hex_dia, hex_heigth) {
+  led_coords() {
+    translate([0, center, -cyl_base])
+      cylinder(h = cyl_height, r=cyl_dia/2);
+    translate([0, center, -hex_base])
+      hexagon(d=hex_dia, h=hex_heigth, center=false);
+  }
+}
+
+
+module mount_thingy_int(center, extra) {
+  // Standoff dimensions.
+  mount_thingy_length = 10.5;
+  mount_thingy_cyl_dia = 3.4;
+  mount_thingy_hex_height = 6.6;
+  mount_thingy_hex_dia = 4.7;
+  // Depression into spindle_mount, to ensure PCB can go flat against base.
+  mount_thingy_lower = 0.4;
+  // Extra height to ensure proper difference()
+  mount_thingy_above = mount_thingy_lower + 0.023;
+  if (extra) {
+    // Add the extra slack to the holes for the standoffs.
+    cyl_height = mount_thingy_length + 2.0;
+    cyl_dia = mount_thingy_cyl_dia + 2*0.3;
+    hex_height = mount_thingy_hex_height + 0.3;
+    hex_dia = mount_thingy_hex_dia + 0.4;
+    cyl_base = cyl_height + mount_thingy_lower;
+    hex_base = hex_height + mount_thingy_lower;
+    mount_thingy_int2(center, cyl_base, cyl_dia, cyl_height, hex_base, hex_dia,
+                      hex_height + mount_thingy_above);
+  } else {
+    cyl_height = mount_thingy_length;
+    cyl_dia = mount_thingy_cyl_dia;
+    hex_height = mount_thingy_hex_height;
+    hex_dia = mount_thingy_hex_dia;
+    cyl_base = cyl_height + mount_thingy_lower;
+    hex_base = hex_height + mount_thingy_lower;
+    mount_thingy_int2(center, cyl_base, cyl_dia, cyl_height+0.23, hex_base, hex_dia, hex_height);
+  }
+}
+
+
+module mount_thingy_upper(extra) {
+  mount_thingy_int(mount_center_upper, extra);
+}
+
+
+module mount_thingy_lower(extra) {
+  mount_thingy_int(mount_center_lower, extra);
 }
 
 
@@ -214,27 +264,6 @@ module spindle_mount_inner() {
       }
       translate([0, 0, cutoff_z - truncate_cube_height/2])
       	cube([truncate_cube_width, truncate_cube_width, truncate_cube_height], center=true);
-    }
-  }
-}
-
-
-module sides_restrict() {
-  nut_thick=1.5;
-  nut_wide=6;
-
-  difference() {
-    spindle_mount_inner();
-    sides_coords() {
-      translate([0, 0, axis_height ]) {
-	rotate([pcb_angle, 0, 0]) {
-	  translate([0, 37, -pcb_thick-12])
-	    cylinder(h = 24, r=3/2);
-	  translate([0, -37-5, -pcb_thick-12])
-	    cylinder(h = 24, r=3/2);
-          mount_thingies();
-	}
-      }
     }
   }
 }
@@ -289,6 +318,7 @@ module sides() {
     sides_coords()
       translate([0, 0, -extra])
         cylinder(r=axis_dia/2-sides_thick, h=axis_height*2+2*extra, center=false);
+    mount_thingy_upper(true);
   }
   pcb_support();
 }
@@ -301,15 +331,18 @@ module highsupport() {
   extra_bit = 1;
   magic_slope = 0.45;
   intersection() {
-    sides_coords()
-      multmatrix([[1, 0, 0, 0],
-                  [0, 1, -magic_slope, 0],
-                  [0, 0, 1, 0],
-                  [0, 0, 0, 1]])
-      translate([0, (axis_dia/2-sides_thick-extra_bit), 0])
-      translate([0, thick/2, support_height/2])
-        cube([width, thick, support_height], center=true);
-    sides_restrict();
+    difference() {
+      sides_coords()
+        multmatrix([[1, 0, 0, 0],
+                    [0, 1, -magic_slope, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1]])
+        translate([0, (axis_dia/2-sides_thick-extra_bit), 0])
+        translate([0, thick/2, support_height/2])
+          cube([width, thick, support_height], center=true);
+      mount_thingy_upper(true);
+    }
+    spindle_mount_inner();
   }
 }
 
@@ -318,9 +351,12 @@ module lowsupport() {
   thick=23;
   width=10;
   intersection() {
-    translate([axis_dia/2-thick/2, 0, axis_height/2])
-      cube([thick, width, axis_height], center=true);
-    sides_restrict();
+    difference() {
+      translate([axis_dia/2-thick/2, 0, axis_height/2])
+        cube([thick, width, axis_height], center=true);
+      mount_thingy_lower(true);
+    }
+    spindle_mount_inner();
   }
 }
 
@@ -355,19 +391,15 @@ module spindle_mount() {
   }
 
   if (enable_mount_thingies) {
-    sides_coords() {
-      translate([0, 0, axis_height]) {
-	rotate([pcb_angle, 0, 0]) {
-	  mount_thingies();
-	}
-      }
-    }
+    mount_thingy_lower(false);
+    mount_thingy_upper(false);
   }
 }
 
 
 intersection() {
   spindle_mount();
+
   // Test prints:
   //translate([19,-15,-40+axis_height/2]) cube([40,30,40]);
   //translate([-60,-15,10+axis_height/2]) cube([40,30,40]);
