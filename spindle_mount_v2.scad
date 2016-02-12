@@ -228,10 +228,12 @@ module pcb_support() {
 }
 
 module sides() {
+  extra = 10;  // Extra height to avoid artifacts from co-planer polygons
   difference() {
     sides_restrict();
     sides_transform()
-      cylinder(r=axis_dia/2-sides_thick, h=axis_height*2, center=false);
+      translate([0, 0, -extra])
+        cylinder(r=axis_dia/2-sides_thick, h=axis_height*2+2*extra, center=false);
   }
 }
 
