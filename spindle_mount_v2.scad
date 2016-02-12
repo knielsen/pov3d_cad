@@ -66,6 +66,49 @@ bat_width = 32;
 bat_length = 52;
 bat_thick = 11;
 
+
+// Switch to coordinates used to model the side of the spindle_mount.
+// These coordinates are centered at the top of the base, with the x-axis
+// pointing towards the right (LED-side of the PCB), and Z upwards.
+module sides_coords() {
+  translate([0,0,base_thick])
+    rotate([0,0,90])
+      children();
+}
+
+
+// Switch to coordinates for stuff that needs to be positioned relative to the
+// LEDs.
+//
+// The coordinates are rotated to be in the plane of the back side of the PCB,
+// with X pointing to the right, towards the LED side, and Z upwards through
+// the top surface of the PCB.
+//
+// The origin coincides with the center of the PCB's back side, and is shifted
+// so that the active spots of the LEDs (led_active_height above the PCB's
+// surface) sweep out cylinders centered of the axis of rotation of the
+// spindle_mount.
+module led_coords() {
+  translate([0,0,base_thick+axis_height])
+    rotate([0, pcb_angle, 0])
+    rotate([0, 0, 90])
+    translate([0, (pcb_thick+led_active_height)*tan(pcb_angle), 0]) {
+    children();
+    }
+}
+
+
+// Just a debugging aid, draw the coordinate axis to visualise the coordinate
+// transformation in use at a given place in the code.
+module coords_debug_axis() {
+  #union() {
+    cube([200, 0.1, 0.1], center=true);
+    cube([0.1, 200, 0.1], center=true);
+    cube([0.1, 0.1, 200], center=true);
+  }
+}
+
+
 module battery(bat_x, bat_y, bat_thick) {
   translate([0, 0, base_thick3]) {
     translate([0,0,bat_thick/2])
@@ -112,36 +155,23 @@ module krave(h, thick) {
 module pcb(thick) {
   extra = 0.3;    // To prevent rendering glitches
 
-  translate([0,0,base_thick+axis_height])
-    rotate([0, pcb_angle, 0])
-    rotate([0, 0, 90])
-    translate([0, (thick+led_active_height)*tan(pcb_angle), 0]) {
-      difference() {
-        linear_extrude(height=thick, center=false)
-          polygon(points = [[49,5.5], [48,16], [45,25], [33.5,34.5],
-                            [8,34.5], [5,40.5], [-5,40.5], [-8,34.5],
-                            [-33.5,34.5], [-45,25], [-48,16], [-49,5.5],
-                            [-49,-5.5], [-48,-16], [-45,-25], [-33.5,-34.5],
-                            [-12.5,-34.5], [-5,-49.5], [5,-49.5], [12.5,-34.5],
-                            [33.5,-34.5], [45,-25], [48,-16], [49,-5.5]]);
-        translate([0, mount_center_upper, -extra])
-          cylinder(h = thick+2*extra, r = 3.6/2, center=false);
-        translate([0, mount_center_lower, -extra])
-          cylinder(h = thick+2*extra, r = 3.6/2, center=false);
-      }
-      translate([0, 0, thick])
-        cylinder(h = led_active_height, r = 0.3, center = false);
+  led_coords() {
+    difference() {
+      linear_extrude(height=thick, center=false)
+        polygon(points = [[49,5.5], [48,16], [45,25], [33.5,34.5],
+                          [8,34.5], [5,40.5], [-5,40.5], [-8,34.5],
+                          [-33.5,34.5], [-45,25], [-48,16], [-49,5.5],
+                          [-49,-5.5], [-48,-16], [-45,-25], [-33.5,-34.5],
+                          [-12.5,-34.5], [-5,-49.5], [5,-49.5], [12.5,-34.5],
+                          [33.5,-34.5], [45,-25], [48,-16], [49,-5.5]]);
+      translate([0, mount_center_upper, -extra])
+        cylinder(h = thick+2*extra, r = 3.6/2, center=false);
+      translate([0, mount_center_lower, -extra])
+        cylinder(h = thick+2*extra, r = 3.6/2, center=false);
     }
-}
-
-
-// Switch to coordinates used to model the side of the spindle_mount.
-// These coordinates are centered at the top of the base, with the x-axis
-// pointing towards the right (LED-side of the PCB), and Z upwards.
-module sides_coords() {
-  translate([0,0,base_thick])
-    rotate([0,0,90])
-      children();
+    translate([0, 0, thick])
+      cylinder(h = led_active_height, r = 0.3, center = false);
+  }
 }
 
 
