@@ -34,7 +34,7 @@ krave_high = 7;
 krave_thick = 2.5;
 // Diameter of mounting screws, including a bit of slack to account for
 // 3D-printer tolerance.
-skrue_dia = 2 + 0.2;
+skrue_dia = 2 + 0.35;
 // Diameter of mounting screw heads, including a bit of slack for easier fit.
 skrue_head = 3.9 + 0.6;
 // Distance of mounting screw hole center from motor spindle center.
@@ -62,7 +62,7 @@ mount_center_lower=-43.65;
 // Distance from pcb center to top edge of pcb.
 pcb_top_offset=40.5;
 // Battery cutout dimensions.
-bat_width = 32;
+bat_width = 31.2;
 bat_length = 52;
 bat_thick = 11;
 
@@ -213,9 +213,9 @@ module mount_thingy_int(center, extra) {
   if (extra) {
     // Add the extra slack to the holes for the standoffs.
     cyl_height = mount_thingy_length + 2.0;
-    cyl_dia = mount_thingy_cyl_dia + 2*0.3;
-    hex_height = mount_thingy_hex_height + 0.3;
-    hex_dia = mount_thingy_hex_dia + 0.4;
+    cyl_dia = mount_thingy_cyl_dia + 2*0.2;
+    hex_height = mount_thingy_hex_height + 0.0;
+    hex_dia = mount_thingy_hex_dia + 0.25;
     cyl_base = cyl_height + mount_thingy_lower;
     hex_base = hex_height + mount_thingy_lower;
     mount_thingy_int2(center, cyl_base, cyl_dia, cyl_height, hex_base, hex_dia,
