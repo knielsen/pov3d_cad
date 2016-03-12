@@ -46,9 +46,11 @@ module led() {
 }
 
 module axis() {
+  epsilon=0.1;
   difference() {
     cylinder(r=axis_dia/2, h=axis_height, center=false);
-    cylinder(r=axis_dia/2-1, h=axis_height*2, center=false);
+    translate([0,0,-epsilon/2])
+      cylinder(r=axis_dia/2-1, h=axis_height*2+epsilon, center=false);
     translate([0, 0, axis_height/2-led_dot_offset])
       rotate([pcb_angle, 0, 0])
         translate([0, 0, 100-pcb_thick])
@@ -62,7 +64,7 @@ module pcb() {
   translate([0,0,-led_dot_offset]) {
     translate([0,0,-pcb_thick/2])
       cube(size=[pcb_len,pcb_width,pcb_thick], center=true);
-    for (r = [0,180]) {
+    for (r = [0/*,180*/]) {
       rotate([0,0,r]) {
         for (i = [0:n_layers-1]) {
           assign(y=(i-(n_layers-1)/2)*h_pix/tan(pcb_angle)) {
@@ -95,7 +97,43 @@ module pcb_place() {
   }
 }
 
+module parallel_planes() {
+  thick=0.4;
+  plane=axis_dia*1.03;
+
+  for (i = [0:n_layers-1]) {
+    translate([0, 0, axis_height/2+(i-(n_layers-1)/2)*h_pix+led_dot_offset]) {
+      cylinder(r=plane/2, h=thick, center=true);
+    }
+  }
+}
+
+module concentric_cylinders() {
+  W = (n_layers-1)*h_pix/tan(pcb_angle)/2+extra;
+  epsilon = 0.1;
+  above=18;
+  below=7;
+  cubesize=200;
+
+  intersection() {
+    for (i = [0:n_leds-1]) {
+      assign(rad=W+i*l_pix) {
+        translate([0, 0, axis_height/2]) difference() {
+          cylinder(r=rad+epsilon/2, h=axis_height+i*epsilon, center=true);
+          cylinder(r=rad-epsilon/2, h=axis_height+(i+0.5)*epsilon, center=true);
+        }
+      }
+    }
+    translate([0, 0, axis_height/2])
+      rotate([pcb_angle, 0, 0])
+        translate([0, 0, above/2-below/2])
+          cube([cubesize, cubesize, above+below], center=true);
+  }
+}
+
 translate([0,0,-axis_height/2]) rotate([0,0,$t*360]) {
   axis();
   pcb_place();
+  //%concentric_cylinders();
+  //%parallel_planes();
 }
