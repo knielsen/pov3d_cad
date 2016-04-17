@@ -65,6 +65,11 @@ pcb_top_offset=40.5;
 bat_width = 31.2;
 bat_length = 52;
 bat_thick = 11;
+// Position of velcro mount holes.
+upper_velcro_center = bat_width/2 + 6.5;
+lower_velcro_center = bat_width/2 + 5;
+// Top of spindle_mount, from top of base.
+cutoff_z = axis_height + pcb_top_offset*sin(pcb_angle);
 
 
 // Switch to coordinates used to model the side of the spindle_mount.
@@ -243,7 +248,6 @@ module mount_thingy_lower(extra) {
 
 
 module spindle_mount_inner() {
-  cutoff_z = axis_height + pcb_top_offset*sin(pcb_angle);
   extra = 10;   // Extra to avoid rendering artifacts from co-planar polygons
   truncate_cube_height = axis_height*2 + base_thick + extra;
   truncate_cube_width=axis_dia + extra;
@@ -330,9 +334,16 @@ module highsupport() {
   support_height = 2*axis_height;
   intersection() {
     difference() {
-      led_coords()
-        translate([0, mount_center_upper + thick/2 - width/2, -support_height/2])
-          cube([width, thick, support_height], center=true);
+      union() {
+        led_coords() {
+          translate([0, mount_center_upper + thick/2 - width/2, -support_height/2])
+            cube([width, thick, support_height], center=true);
+        }
+        sides_coords() {
+          translate([0, 0, cutoff_z])
+            cube([axis_dia, axis_dia, 2*1], center=true);
+        }
+      }
       mount_thingy_upper(true);
     }
     spindle_mount_inner();
@@ -342,14 +353,22 @@ module highsupport() {
 
 module lowsupport() {
   thick = axis_dia/2;
-  width = 10;
+  width = 13.5;
+  breadth = axis_dia;
   height = axis_height;
+  velcro_space_dist = 6;
+  velcro_space_dia = 24;
   intersection() {
     difference() {
       led_coords()
         translate([0, mount_center_lower - thick/2 + width/2, -height/2])
-          cube([width, thick, height], center=true);
+          cube([breadth, thick, height], center=true);
       mount_thingy_lower(true);
+      // Also subtract a cylinder to make room for screw holding Velcro.
+      sides_coords() {
+       translate([0, -lower_velcro_center-velcro_space_dist+velcro_space_dia/2, -1.71])
+          cylinder(r=velcro_space_dia/2, h=axis_height, center=false);
+      }
     }
     spindle_mount_inner();
   }
@@ -375,9 +394,9 @@ module spindle_mount() {
   difference() {
     base(base_thick, base_thick2, axis_dia/2);
     // Holes for screws holding the velkro strips.
-    translate([bat_width/2+5, 0, -extra])
+    translate([lower_velcro_center, 0, -extra])
       cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
-    translate([-(bat_width/2+6.5), 0, -extra])
+    translate([-upper_velcro_center, 0, -extra])
       cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
   }
 
