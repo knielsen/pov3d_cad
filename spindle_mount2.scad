@@ -25,7 +25,9 @@ base_thick = 28.5;
 // the screws mounting to the motor spindle.
 base_thick2 = 2.5;
 // Thickness of the bottom of the cut-out for the battery.
-base_thick3 = base_thick - 9.5;
+base_thick3 = 4;
+// Thickness of the base at the edges around the battery cut-out.
+base_thick4 = base_thick3 + 9.5;
 // The diameter of the bottom of the base (which must fit within the space
 // available originally for the hard-disk platters).
 base_lower_dia = 92;   // Was 77.5 in spindle_mount_v2
@@ -136,9 +138,48 @@ module battery(bat_x, bat_y, bat_thick) {
 module base() {
   rad1 = base_lower_dia/2;
   rad2 = axis_dia/2;
+  base_wall_thick = 1.5;
+  base_cutout_front = 19;
+  base_cutout_back = 28;
+  velcro_space_dist = 8;
+  velcro_space_dia = 24;
+  balance_weight_cutout_depth = 4;
+  balance_weight_cutout_width = 58;
+  balance_weight_cutout_start = 62;
+  extra = 1.13;   // To avoid rendering glitches
+
   difference() {
     /* Truncated cone for main base. */
     cylinder(h = base_thick, r1= rad1, r2 = rad2);
+
+    // Subtract material in the center and back, to reduce weight and get the
+    // battery down to lower center-of-mass.
+    intersection() {
+      cylinder(h = base_thick+0.017, r1= rad1-base_wall_thick*2, r2 = rad2-base_wall_thick*2);
+      translate([-(-base_cutout_front+axis_dia/2), 0, base_thick4+base_thick/2])
+        cube([axis_dia, axis_dia, base_thick], center=true);
+    }
+    // Subtract even more material in the back, to further reduce weight and
+    // try to compensate a bit for the higher mass of the back wall.
+    intersection() {
+      cylinder(h = base_thick+0.017, r1= rad1-base_wall_thick*2, r2 = rad2-base_wall_thick*2);
+      translate([-(base_cutout_back+axis_dia/2), 0, base_thick3+base_thick/2])
+        cube([axis_dia, axis_dia, base_thick], center=true);
+    }
+    // Subtract a bit at the front for extra balancing weights, with a hole for
+    // a screw to hold the weights.
+    translate([-(-balance_weight_cutout_start+axis_dia/4),
+                0,
+                base_thick-(balance_weight_cutout_depth-extra)/2]) {
+      cube([axis_dia/2, balance_weight_cutout_width, balance_weight_cutout_depth+extra],
+           center=true);
+    }
+    translate([40, 0, -extra])
+      cylinder(h=base_thick+2*extra, r=1.5+0.2, center=false);
+    // Subtract a cylinder to make room for screw holding Velcro.
+    translate([-(-lower_velcro_center-velcro_space_dist+velcro_space_dia/2), 0, base_thick4]) {
+      cylinder(r=velcro_space_dia/2, h=base_thick, center=false);
+    }
     // Hole that fits the spindle on the hard disk motor.
     translate([0,0,-0.1])
       cylinder(h=base_thick+0.2, r = center_piece_rad);
@@ -423,8 +464,6 @@ module lowsupport() {
   width = 13.5;
   breadth = 10;
   height = axis_height;
-  velcro_space_dist = 6;
-  velcro_space_dia = 24;
   intersection() {
     difference() {
       led_coords() {
@@ -434,11 +473,6 @@ module lowsupport() {
           cube([breadth, thick, height], center=true);
       }
       mount_thingy_lower(true);
-      // Also subtract a cylinder to make room for screw holding Velcro.
-      sides_coords() {
-       translate([0, -lower_velcro_center-velcro_space_dist+velcro_space_dia/2, -1.71])
-          cylinder(r=velcro_space_dia/2, h=axis_height, center=false);
-      }
     }
     spindle_mount_inner();
   }
@@ -446,8 +480,6 @@ module lowsupport() {
 
 
 module spindle_mount() {
-  extra = 1.13;   // To avoid rendering glitches
-
   if (enable_krave) {
     krave (krave_high, krave_thick);
   }
