@@ -4,6 +4,11 @@ enable_supports = true;
 enable_sides = true;
 enable_mount_thingies = false;
 
+// Set an initial zoom that makes the whole thing visible.
+$vpt = $vpd < 200 ? [-5, 15, 50] : $vpt;
+$vpr = $vpd < 200 ? [83, 0, 114] : $vpr;
+$vpd = $vpd < 200 ? 400 : $vpd;
+
 // Fine subdivisions, for production run
 $fa = 1; $fs = 0.1;
 // Coarse, but faster, subdivisions, for testing.
@@ -15,18 +20,21 @@ spindle_radius = 25;
 
 // Height of the filled-in bottom part of the base, where radius increases
 // with height.
-base_thick = 15;
+base_thick = 28.5;
 // Thickness of the bottom of the cutout in the base fill-in, which holds
 // the screws mounting to the motor spindle.
 base_thick2 = 2.5;
 // Thickness of the bottom of the cut-out for the battery.
-base_thick3 = base_thick2 + 3;
+base_thick3 = base_thick - 9.5;
+// The diameter of the bottom of the base (which must fit within the space
+// available originally for the hard-disk platters).
+base_lower_dia = 92;   // Was 77.5 in spindle_mount_v2
 // Cutouts for heads of screws mounting to motor spindle.
 mount_screw_lowering = 1.2;
 // Height of the spindle mount. This value is the height above the filled-in
 // part of the base (base_thick) at which the bottom of the PCB intersects the
 // Z-axis (x=y=0).
-axis_height = 48.5;
+axis_height = 44.5;
 // The outer dimension of the mount.
 axis_dia = 149;
 // Dimensions of the krave around the motor spindle.
@@ -125,19 +133,21 @@ module battery(bat_x, bat_y, bat_thick) {
 }
 
 
-module base(thick, thick2, rad) {
+module base() {
+  rad1 = base_lower_dia/2;
+  rad2 = axis_dia/2;
   difference() {
-    cylinder(h = thick, r1= rad-0.75*thick, r2 = rad);
+    cylinder(h = base_thick, r1= rad1, r2 = rad2);
     translate([0,0,-0.1])
-      cylinder(h=thick+0.2, r = center_piece_rad);
-    translate([0,0,thick2])
-      cylinder(h=thick+0.2, r = center_piece_space);
+      cylinder(h=base_thick+0.2, r = center_piece_rad);
+    translate([0,0,base_thick2])
+      cylinder(h=base_thick+0.2, r = center_piece_space);
     for (i = [0 : 5]) {
       rotate(i*360/6, [0,0,1]) {
 	translate([skrue_dist, 0, -0.1])
-	  cylinder(h = thick+0.2, r=skrue_dia/2);
-	translate([skrue_dist, 0, thick2-mount_screw_lowering])
-	  cylinder(h = thick+0.2, r=skrue_head/2);
+	  cylinder(h = base_thick+0.2, r=skrue_dia/2);
+	translate([skrue_dist, 0, base_thick2-mount_screw_lowering])
+	  cylinder(h = base_thick+0.2, r=skrue_head/2);
       }
     }
     battery(bat_width, bat_length, bat_thick);
@@ -303,7 +313,7 @@ module spindle_mount_inner() {
 
   sides_coords() {
     intersection() {
-      cylinder(r=axis_dia/2, h=axis_height*2, center=false);
+      cylinder(r=axis_dia/2, h=2*pcb_top_offset*sin(pcb_angle), center=false);
       translate([0, 0, axis_height]) {
 	rotate([pcb_angle, 0, 0]) {
 	  translate([0, 0, -slant_cube_height/2]) {
@@ -441,7 +451,7 @@ module spindle_mount() {
   }
 
   difference() {
-    base(base_thick, base_thick2, axis_dia/2);
+    base();
     // Holes for screws holding the velkro strips.
     translate([lower_velcro_center, 0, -extra])
       cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
