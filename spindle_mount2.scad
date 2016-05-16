@@ -137,11 +137,15 @@ module base() {
   rad1 = base_lower_dia/2;
   rad2 = axis_dia/2;
   difference() {
+    /* Truncated cone for main base. */
     cylinder(h = base_thick, r1= rad1, r2 = rad2);
+    // Hole that fits the spindle on the hard disk motor.
     translate([0,0,-0.1])
       cylinder(h=base_thick+0.2, r = center_piece_rad);
+    // Cutout in base around the spindle hole, with space for mounting screws.
     translate([0,0,base_thick2])
       cylinder(h=base_thick+0.2, r = center_piece_space);
+    // Holes for 6 mounting screws.
     for (i = [0 : 5]) {
       rotate(i*360/6, [0,0,1]) {
 	translate([skrue_dist, 0, -0.1])
@@ -150,7 +154,14 @@ module base() {
 	  cylinder(h = base_thick+0.2, r=skrue_head/2);
       }
     }
+    // Cutout for battery.
     battery(bat_width, bat_length, bat_thick);
+    // Holes for screws holding the velkro strips.
+    translate([lower_velcro_center, 0, -extra])
+      cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
+    translate([-upper_velcro_center, 0, -extra])
+      cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
+    // Holes for the mount thingies.
     mount_thingy_lower(true);
   }
 }
@@ -450,14 +461,7 @@ module spindle_mount() {
     pcb(pcb_thick);
   }
 
-  difference() {
-    base();
-    // Holes for screws holding the velkro strips.
-    translate([lower_velcro_center, 0, -extra])
-      cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
-    translate([-upper_velcro_center, 0, -extra])
-      cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
-  }
+  base();
 
   if (enable_sides) {
     sides();
