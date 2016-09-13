@@ -1,7 +1,10 @@
+include <ledtorus_rotor.scad>
+
 enable_pcb = true;
 enable_supports = true;
 enable_sides = true;
 enable_mount_thingies = false;
+enable_rotor = true;
 
 // Set an initial zoom that makes the whole thing visible.
 $vpt = $vpd < 200 ? [-5, 15, 50] : $vpt;
@@ -455,6 +458,10 @@ module spindle_mount() {
   if (enable_mount_thingies) {
     mount_thingy_lower(false);
     mount_thingy_upper(false);
+  }
+
+  if (enable_rotor) {
+    %ledtorus_rotor();
   }
 }
 
