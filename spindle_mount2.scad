@@ -20,7 +20,7 @@ spindle_radius = 25;
 
 // Height of the filled-in bottom part of the base, where radius increases
 // with height.
-base_thick = 28.5;
+base_thick = 30.5;
 // Thickness of the bottom of the cutout in the base fill-in, which holds
 // the screws mounting to the motor spindle.
 base_thick2 = 2.5;
@@ -30,13 +30,13 @@ base_thick3 = 4;
 base_thick4 = base_thick3 + 9.5;
 // The diameter of the bottom of the base (which must fit within the space
 // available originally for the hard-disk platters).
-base_lower_dia = 92;   // Was 77.5 in spindle_mount_v2
+base_lower_dia = 88;   // Was 77.5 in spindle_mount_v2
 // Cutouts for heads of screws mounting to motor spindle.
 mount_screw_lowering = 1.2;
 // Height of the spindle mount. This value is the height above the filled-in
 // part of the base (base_thick) at which the bottom of the PCB intersects the
 // Z-axis (x=y=0).
-axis_height = 44.5;
+axis_height = 45.5;
 // The outer dimension of the mount.
 axis_dia = 149;
 // Dimensions of the krave around the motor spindle.
@@ -174,7 +174,7 @@ module base() {
       cube([axis_dia/2, balance_weight_cutout_width, balance_weight_cutout_depth+extra],
            center=true);
     }
-    translate([40, 0, -extra])
+    translate([38, 0, -extra])
       cylinder(h=base_thick+2*extra, r=1.5+0.2, center=false);
     // Subtract a cylinder to make room for screw holding Velcro.
     translate([-(-lower_velcro_center-velcro_space_dist+velcro_space_dia/2), 0, base_thick4]) {
@@ -516,4 +516,8 @@ intersection() {
   //translate([-60,-15,38+axis_height/2]) cube([40,30,40]);
   // Lower support:
   //translate([15,-15,-40+axis_height/2]) cube([40,30,60]);
+
+  // Detail for test for ledtorus 2 mount.
+  //%translate([40, 50, 20])
+  //  cube([80, 90, 60], center=true);
 }
