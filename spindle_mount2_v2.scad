@@ -21,7 +21,7 @@ base_thick3 = 3;
 // Height of the spindle mount. This value is the height above the filled-in
 // part of the base (base_thick) at which the bottom of the PCB intersects the
 // Z-axis (x=y=0).
-axis_height = 45.5;
+axis_height = 47;
 // The outer dimension of the mount.
 axis_dia = 149;
 // Diameter of mounting screws, including a bit of slack to account for
@@ -58,7 +58,8 @@ bat_holder_sides = 1.5;
 upper_velcro_center = bat_width/2 + 6.5;
 lower_velcro_center = bat_width/2 + 6.5;
 // Top of spindle_mount, from top of base.
-cutoff_z = axis_height + pcb_top_offset*sin(pcb_angle);
+cutoff_z = axis_height +
+  (pcb_top_offset+(led_active_height+pcb_thick)*tan(pcb_angle))*sin(pcb_angle);
 // Diameter of axle on rotor.
 axle_dia = 8;
 
@@ -321,7 +322,7 @@ module spindle_mount_inner() {
 
   sides_coords() {
     intersection() {
-      cylinder(r=axis_dia/2, h=2*pcb_top_offset*sin(pcb_angle), center=false);
+      cylinder(r=axis_dia/2, h=cutoff_z, center=false);
       translate([0, 0, axis_height]) {
 	rotate([pcb_angle, 0, 0]) {
 	  translate([0, 0, -slant_cube_height/2]) {
@@ -405,7 +406,7 @@ module highsupport() {
         }
         sides_coords() {
           translate([0, 0, cutoff_z])
-            cube([axis_dia, axis_dia, 2*1], center=true);
+            cube([axis_dia, axis_dia, 2*sides_thick], center=true);
         }
       }
       mount_thingy_upper(true);
