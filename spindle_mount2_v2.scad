@@ -1,4 +1,3 @@
-enable_krave = false;
 enable_pcb = true;
 enable_supports = true;
 enable_sides = true;
@@ -14,47 +13,25 @@ $fa = 1; $fs = 0.1;
 // Coarse, but faster, subdivisions, for testing.
 //$fa = 8; $fs = 0.8;
 
-// The outer radius of the motor spindle. Used when enable_krave is true,
-// to put a "krave" around the spindle (but might be hard to print).
-spindle_radius = 25;
-
 // Height of the filled-in bottom part of the base, where radius increases
 // with height.
-base_thick = 30.5;
-// Thickness of the bottom of the cutout in the base fill-in, which holds
-// the screws mounting to the motor spindle.
-base_thick2 = 2.5;
+base_thick = 6;
 // Thickness of the bottom of the cut-out for the battery.
-base_thick3 = 4;
-// Thickness of the base at the edges around the battery cut-out.
-base_thick4 = base_thick3 + 9.5;
-// The diameter of the bottom of the base (which must fit within the space
-// available originally for the hard-disk platters).
-base_lower_dia = 88;   // Was 77.5 in spindle_mount_v2
-// Cutouts for heads of screws mounting to motor spindle.
-mount_screw_lowering = 1.2;
+base_thick3 = 3;
 // Height of the spindle mount. This value is the height above the filled-in
 // part of the base (base_thick) at which the bottom of the PCB intersects the
 // Z-axis (x=y=0).
 axis_height = 45.5;
 // The outer dimension of the mount.
 axis_dia = 149;
-// Dimensions of the krave around the motor spindle.
-krave_high = 7;
-krave_thick = 2.5;
 // Diameter of mounting screws, including a bit of slack to account for
 // 3D-printer tolerance.
-skrue_dia = 2 + 0.35;
-// Diameter of mounting screw heads, including a bit of slack for easier fit.
-skrue_head = 3.9 + 0.6;
-// Distance of mounting screw hole center from motor spindle center.
-skrue_dist = 10.15;
-// Radius of the hole in the base to fit on top of the center disk of the
-// motor spindle, plus a bit of slack to account for 3D printing tolerances.
-center_piece_rad = 14.5/2+0.3;
-// Radius of the cutout in the base fill-in to provide access to mounting
-// screws.
-center_piece_space = skrue_dist + skrue_dia + 2;
+skrue_dia = 3 + 0.35;
+// Distance of mounting screw hole center from mount center.
+skrue_dist = 54;
+// The diameter of the bottom of the base (which must fit within the space
+// available originally for the hard-disk platters).
+base_lower_dia = axis_dia-base_thick*2;
 // Angle of the PCB with horizontal - this is an intrinsic property of the PCB
 // layout.
 pcb_angle=37.5;
@@ -65,7 +42,7 @@ pcb_thick = 0.8;
 // the light-emitting locations become centered correctly around the spin-axis
 led_active_height = 0.2;
 // Thickness of the walls of the mount.
-sides_thick=1.0;
+sides_thick=1.5;
 // Location of the mounting holes for the PCB.
 mount_center_x = 35.5;
 mount_center_y = 68;
@@ -75,11 +52,15 @@ pcb_top_offset=74.5;
 bat_width = 31.2;
 bat_length = 52;
 bat_thick = 11;
+// Thickness of the sides around the battery.
+bat_holder_sides = 1.5;
 // Position of velcro mount holes.
 upper_velcro_center = bat_width/2 + 6.5;
-lower_velcro_center = bat_width/2 + 5;
+lower_velcro_center = bat_width/2 + 6.5;
 // Top of spindle_mount, from top of base.
 cutoff_z = axis_height + pcb_top_offset*sin(pcb_angle);
+// Diameter of axle on rotor.
+axle_dia = 8;
 
 
 // Switch to coordinates used to model the side of the spindle_mount.
@@ -138,84 +119,59 @@ module battery(bat_x, bat_y, bat_thick) {
 module base() {
   rad1 = base_lower_dia/2;
   rad2 = axis_dia/2;
-  base_wall_thick = 1.5;
-  base_cutout_front = 19;
-  base_cutout_back = 28;
-  velcro_space_dist = 8;
-  velcro_space_dia = 24;
   balance_weight_cutout_depth = 4;
   balance_weight_cutout_width = 58;
-  balance_weight_cutout_start = 62;
+  balance_weight_cutout_start = 26.5;
+  balance_weight_cutout_end = 62;
+  balance_weight_cutout_center = balance_weight_cutout_start +
+    (balance_weight_cutout_end-balance_weight_cutout_start)/2;//24.75;
   extra = 1.13;   // To avoid rendering glitches
 
   difference() {
-    /* Truncated cone for main base. */
-    cylinder(h = base_thick, r1= rad1, r2 = rad2);
+    union() {
+      /* Truncated cone for main base. */
+      cylinder(h = base_thick, r1= rad1, r2 = rad2);
+      /* Sides for holding the battery. */
+      translate([0, 0, base_thick3+bat_thick/2-0.03])
+        cube([bat_width+bat_holder_sides*2,bat_length+bat_holder_sides*2,bat_thick],
+             center=true);
+    }
 
-    // Subtract material in the center and back, to reduce weight and get the
-    // battery down to lower center-of-mass.
-    intersection() {
-      cylinder(h = base_thick+0.017, r1= rad1-base_wall_thick*2, r2 = rad2-base_wall_thick*2);
-      translate([-(-base_cutout_front+axis_dia/2), 0, base_thick4+base_thick/2])
-        cube([axis_dia, axis_dia, base_thick], center=true);
-    }
-    // Subtract even more material in the back, to further reduce weight and
-    // try to compensate a bit for the higher mass of the back wall.
-    intersection() {
-      cylinder(h = base_thick+0.017, r1= rad1-base_wall_thick*2, r2 = rad2-base_wall_thick*2);
-      translate([-(base_cutout_back+axis_dia/2), 0, base_thick3+base_thick/2])
-        cube([axis_dia, axis_dia, base_thick], center=true);
-    }
     // Subtract a bit at the front for extra balancing weights, with a hole for
     // a screw to hold the weights.
-    translate([-(-balance_weight_cutout_start+axis_dia/4),
+    translate([balance_weight_cutout_center,
                 0,
                 base_thick-(balance_weight_cutout_depth-extra)/2]) {
-      cube([axis_dia/2, balance_weight_cutout_width, balance_weight_cutout_depth+extra],
+      cube([balance_weight_cutout_end - balance_weight_cutout_start,
+            balance_weight_cutout_width,
+            balance_weight_cutout_depth+extra],
            center=true);
     }
     translate([38, 0, -extra])
       cylinder(h=base_thick+2*extra, r=1.5+0.2, center=false);
-    // Subtract a cylinder to make room for screw holding Velcro.
-    translate([-(-lower_velcro_center-velcro_space_dist+velcro_space_dia/2), 0, base_thick4]) {
-      cylinder(r=velcro_space_dia/2, h=base_thick, center=false);
+    // Cutout for battery.
+    battery(bat_width, bat_length, bat_thick);
+    // Holes for screws holding the velkro strips.
+    translate([lower_velcro_center, 0, -extra]) {
+      cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
+      cylinder(r=7.5/2, h=3+extra, center=false);
     }
-    // Hole that fits the spindle on the hard disk motor.
-    translate([0,0,-0.1])
-      cylinder(h=base_thick+0.2, r = center_piece_rad);
-    // Cutout in base around the spindle hole, with space for mounting screws.
-    translate([0,0,base_thick2])
-      cylinder(h=base_thick+0.2, r = center_piece_space);
-    // Holes for 6 mounting screws.
+    translate([-upper_velcro_center, 0, -extra]) {
+      cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
+      cylinder(r=7.5/2, h=3+extra, center=false);
+    }
+    // Holes for the mount thingies.
+    mount_thingy_lower(true);
+    // Holes for fastening on the plane connected to the motor.
     for (i = [0 : 5]) {
       rotate(i*360/6, [0,0,1]) {
 	translate([skrue_dist, 0, -0.1])
 	  cylinder(h = base_thick+0.2, r=skrue_dia/2);
-	translate([skrue_dist, 0, base_thick2-mount_screw_lowering])
-	  cylinder(h = base_thick+0.2, r=skrue_head/2);
       }
     }
-    // Cutout for battery.
-    battery(bat_width, bat_length, bat_thick);
-    // Holes for screws holding the velkro strips.
-    translate([lower_velcro_center, 0, -extra])
-      cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
-    translate([-upper_velcro_center, 0, -extra])
-      cylinder(r=1.5+0.2, h=base_thick+2*extra, center=false);
-    // Holes for the mount thingies.
-    mount_thingy_lower(true);
-  }
-}
-
-
-module krave(h, thick) {
-  extra = 0.1754;   // To avoid rendering glitches
-  translate([0,0,-h]) {
-    difference() {
-      cylinder(h = h, r = spindle_radius/2+thick);
-      translate([0, 0, -extra])
-        cylinder(h = h+2*extra, r = spindle_radius/2);
-    }
+    // Hole for axle (for precise centering of mount on rotor).
+    translate([0, 0, -extra])
+      cylinder(h=base_thick+2*extra, r=axle_dia/2, center=false);
   }
 }
 
@@ -385,7 +341,7 @@ module spindle_mount_inner() {
 // PCB. A small hole is made to make room for the hall sensor.
 module pcb_support() {
   // Width of the support, from outside of mount towards center.
-  support_width = 2.5;
+  support_width = sides_thick + 1.5;
   // angle of support as it curves inwards from the sides. Smaller angles
   // should be easier to 3D-print cleanly.
   support_angle = 20;
@@ -480,10 +436,6 @@ module lowsupport() {
 
 
 module spindle_mount() {
-  if (enable_krave) {
-    krave (krave_high, krave_thick);
-  }
-
   if (enable_supports) {
     highsupport();
     lowsupport();
@@ -510,12 +462,6 @@ intersection() {
   spindle_mount();
 
   // Test prints.
-  // Bottom mounting holes for harddisk spindle.
-  //cube([35, 35, 40], center=true);
-  // Upper support:
-  //translate([-60,-15,38+axis_height/2]) cube([40,30,40]);
-  // Lower support:
-  //translate([15,-15,-40+axis_height/2]) cube([40,30,60]);
 
   // Detail for test for ledtorus 2 mount.
   //%translate([40, 50, 20])
