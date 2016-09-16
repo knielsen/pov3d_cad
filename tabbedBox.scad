@@ -2,10 +2,10 @@ showFlat = false;
 showFolded = true;
 showExpanded = true;
 
-boxDepth   = 350;    // x
-boxWidth   = 500;    // y
-boxHeight  = 500;    // z
-plateThickness = 5;
+boxDepth   = 200;    // x
+boxWidth   = 270;    // y
+boxHeight  = 140;    // z
+plateThickness = 12;
 wishTabWidth = 25;
 
 
@@ -19,10 +19,10 @@ module backFront()
     tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
     translate([plateThickness*2,0])
       rotate([0,0,90])
-        tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
+        tab(boxHeight,wishTabWidth,tabStyle,plateThickness);
     translate([boxWidth,0])
       rotate([0,0,90])
-        tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
+        tab(boxHeight,wishTabWidth,tabStyle,plateThickness);
     translate([0,boxHeight-plateThickness*2])
       tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
 }
