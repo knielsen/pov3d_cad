@@ -122,38 +122,38 @@ module asPlate() {
 }
 
 
-module tab(lenght, wishTabLenght, start, tabDepth)
+module tab(length, wishTabLength, start, tabDepth)
 {
     tabDepthExtra = tabDepth;
 
-    wishNum = lenght / wishTabLenght;
+    wishNum = length / wishTabLength;
     tabNum = floor(0.5*(wishNum-1));
-    tabLenght = lenght / (2*tabNum+1);
+    tabLength = length / (2*tabNum+1);
 
     if (start == 0)
     {
         for (i=[0:tabNum-1])
         {
-            translate([((1+2*i)*tabLenght),0])square([tabLenght,tabDepth+tabDepthExtra]);
+            translate([((1+2*i)*tabLength),0])square([tabLength,tabDepth+tabDepthExtra]);
         }
     }
     if (start == 1)
     {
         for (i=[0:tabNum])
         {
-            translate([((2*i)*tabLenght),0])
+            translate([((2*i)*tabLength),0])
             {
                 if(i==0)
                 {
-                    translate([tabDepth,0])square([tabLenght-tabDepth,tabDepth+tabDepthExtra]);
+                    translate([tabDepth,0])square([tabLength-tabDepth,tabDepth+tabDepthExtra]);
                 }
                 else if(i==tabNum)
                 {
-                    square([tabLenght-tabDepth,tabDepth+tabDepthExtra]);
+                    square([tabLength-tabDepth,tabDepth+tabDepthExtra]);
                 }
                 else
                 {
-                    square([tabLenght,tabDepth+tabDepthExtra]);
+                    square([tabLength,tabDepth+tabDepthExtra]);
                 }
             }
         }
@@ -163,7 +163,7 @@ module tab(lenght, wishTabLenght, start, tabDepth)
     {
         for (i=[0:tabNum])
         {
-            translate([((2*i)*tabLenght),0])square([tabLenght,tabDepth+tabDepthExtra]);
+            translate([((2*i)*tabLength),0])square([tabLength,tabDepth+tabDepthExtra]);
         }
 
     }
