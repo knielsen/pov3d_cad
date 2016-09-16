@@ -17,9 +17,14 @@ module backFront()
 
     tabStyle = 0;
     tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
-    translate([plateThickness*2,0])rotate([0,0,90])tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
-    translate([boxWidth,0])rotate([0,0,90])tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
-    translate([0,boxHeight-plateThickness*2])tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
+    translate([plateThickness*2,0])
+      rotate([0,0,90])
+        tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
+    translate([boxWidth,0])
+      rotate([0,0,90])
+        tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
+    translate([0,boxHeight-plateThickness*2])
+      tab(boxWidth,wishTabWidth,tabStyle,plateThickness);
 }
 
 module side()
@@ -30,9 +35,14 @@ module side()
     tabStyleSide = 1;
     tabStyleTopButt = 0;
     tab(boxDepth,wishTabWidth,tabStyleTopButt,plateThickness);
-    translate([plateThickness*2,0])rotate([0,0,90])tab(boxHeight,wishTabWidth,tabStyleSide,plateThickness);
-    translate([boxDepth,0])rotate([0,0,90])tab(boxHeight,wishTabWidth,tabStyleSide,plateThickness);
-    translate([0,boxHeight-plateThickness*2])tab(boxDepth,wishTabWidth,tabStyleTopButt,plateThickness);
+    translate([plateThickness*2,0])
+      rotate([0,0,90])
+        tab(boxHeight,wishTabWidth,tabStyleSide,plateThickness);
+    translate([boxDepth,0])
+      rotate([0,0,90])
+        tab(boxHeight,wishTabWidth,tabStyleSide,plateThickness);
+    translate([0,boxHeight-plateThickness*2])
+      tab(boxDepth,wishTabWidth,tabStyleTopButt,plateThickness);
 }
 
 module top()
@@ -43,9 +53,14 @@ module top()
     tabStyleSide = 2;
     tabStyleTopButt = 2;
     tab(boxWidth,wishTabWidth,tabStyleTopButt,plateThickness);
-    translate([plateThickness*2,0])rotate([0,0,90])tab(boxDepth,wishTabWidth,tabStyleSide,plateThickness);
-    translate([boxWidth,0])rotate([0,0,90])tab(boxDepth,wishTabWidth,tabStyleSide,plateThickness);
-    translate([0,boxDepth-plateThickness*2])tab(boxWidth,wishTabWidth,tabStyleTopButt,plateThickness);
+    translate([plateThickness*2,0])
+      rotate([0,0,90])
+        tab(boxDepth,wishTabWidth,tabStyleSide,plateThickness);
+    translate([boxWidth,0])
+      rotate([0,0,90])
+        tab(boxDepth,wishTabWidth,tabStyleSide,plateThickness);
+    translate([0,boxDepth-plateThickness*2])
+      tab(boxWidth,wishTabWidth,tabStyleTopButt,plateThickness);
 }
 
 
@@ -122,6 +137,18 @@ module asPlate() {
 }
 
 
+/*
+  Create the tabs along the edge of a side of the box.
+  Parameters:
+    length         length of the edge.
+    wishTabLength  Requested length of one tab (short length, ie. only the
+                   protruding part). This length will be rounded up so that
+                   there will be an integer number of tabs.
+    start          tabStyle. 0 is ____####____####____
+                             1 is _###____####____###_
+                             2 is ####____####____####
+    tabDepth       How much the tab should protrude.
+*/
 module tab(length, wishTabLength, start, tabDepth)
 {
     tabDepthExtra = tabDepth;
@@ -130,41 +157,31 @@ module tab(length, wishTabLength, start, tabDepth)
     tabNum = floor(0.5*(wishNum-1));
     tabLength = length / (2*tabNum+1);
 
-    if (start == 0)
-    {
-        for (i=[0:tabNum-1])
-        {
-            translate([((1+2*i)*tabLength),0])square([tabLength,tabDepth+tabDepthExtra]);
+    if (start == 0) {
+        for (i=[0:tabNum-1]) {
+            translate([((1+2*i)*tabLength),0])
+              square([tabLength,tabDepth+tabDepthExtra]);
         }
     }
-    if (start == 1)
-    {
-        for (i=[0:tabNum])
-        {
-            translate([((2*i)*tabLength),0])
-            {
-                if(i==0)
-                {
-                    translate([tabDepth,0])square([tabLength-tabDepth,tabDepth+tabDepthExtra]);
-                }
-                else if(i==tabNum)
-                {
+    if (start == 1) {
+        for (i=[0:tabNum]) {
+            translate([((2*i)*tabLength),0]) {
+                if(i==0) {
+                  translate([tabDepth,0])
                     square([tabLength-tabDepth,tabDepth+tabDepthExtra]);
-                }
-                else
-                {
-                    square([tabLength,tabDepth+tabDepthExtra]);
+                } else if(i==tabNum) {
+                  square([tabLength-tabDepth,tabDepth+tabDepthExtra]);
+                } else {
+                  square([tabLength,tabDepth+tabDepthExtra]);
                 }
             }
         }
 
     }
-    if (start == 2)
-    {
-        for (i=[0:tabNum])
-        {
-            translate([((2*i)*tabLength),0])square([tabLength,tabDepth+tabDepthExtra]);
+    if (start == 2) {
+        for (i=[0:tabNum]) {
+            translate([((2*i)*tabLength),0])
+              square([tabLength,tabDepth+tabDepthExtra]);
         }
-
     }
 }
