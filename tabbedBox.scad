@@ -7,7 +7,16 @@ boxWidth   = 270;    // y
 boxHeight  = 140;    // z
 plateThickness = 12;
 wishTabWidth = 25;
-
+axleDia = 10;
+axlePos = 90;
+largeBearingDepth = 8;  // ToDo: Measure this.
+largeBearingOuterDia = 38.1;
+largeBearingInnerDia = 27;
+largeBearingFreeDia = largeBearingOuterDia - 2*2;
+smallBearingDepth = 8;  // ToDo: Measure this.
+smallBearingOuterDia = 26;
+smallBearingInnerDia = 10;
+smallBearingFreeDia = smallBearingOuterDia - 2*2;
 
 
 module backFront()
@@ -64,14 +73,36 @@ module top()
 }
 
 
+module topWithHoles() {
+  epsilon = 0.017;
+  difference() {
+    asPlate()
+      top();
+    translate([axlePos, boxDepth/2, -epsilon])
+      cylinder(r=largeBearingFreeDia/2, h=plateThickness+2*epsilon, center=false);
+    translate([axlePos, boxDepth/2, plateThickness-largeBearingDepth])
+      cylinder(r=largeBearingOuterDia/2, h=largeBearingDepth+2*epsilon);
+  }
+}
+
+module bottomWithHoles() {
+  epsilon = 0.0117;
+  difference() {
+    asPlate()
+      top();
+    translate([axlePos, boxDepth/2, -epsilon])
+      cylinder(r=smallBearingFreeDia/2, h=plateThickness+2*epsilon, center=false);
+    translate([axlePos, boxDepth/2, plateThickness-smallBearingDepth])
+      cylinder(r=smallBearingOuterDia/2, h=smallBearingDepth+2*epsilon);
+  }
+}
+
 module foldedBox(expanded) {
   delta = expanded ? plateThickness : 0;
   inRed() {
-    asPlate()
-      top();
+    bottomWithHoles();
     translate([0,0,boxHeight-plateThickness+2*delta])
-      asPlate()
-        top();
+      topWithHoles();
   }
   inGreen() {
     translate([-delta,0,delta])
