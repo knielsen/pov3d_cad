@@ -20,7 +20,7 @@ $fa = 1; $fs = 0.1;
 // with height.
 base_thick = 6;
 // Thickness of the bottom of the cut-out for the battery.
-base_thick3 = 3;
+base_thick3 = 5;
 // Height of the spindle mount. This value is the height above the filled-in
 // part of the base (base_thick) at which the bottom of the PCB intersects the
 // Z-axis (x=y=0).
