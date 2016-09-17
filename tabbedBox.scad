@@ -18,6 +18,11 @@ smallBearingOuterDia = 26;
 smallBearingInnerDia = 10;
 smallBearingFreeDia = smallBearingOuterDia - 2*2;
 
+// Fine subdivisions, for production run
+$fa = 1; $fs = 0.1;
+// Coarse, but faster, subdivisions, for testing.
+//$fa = 8; $fs = 0.8;
+
 
 module backFront()
 {
@@ -73,8 +78,8 @@ module top()
 }
 
 
-module topWithHoles() {
-  epsilon = 0.017;
+module topWithHoles(for2D=false) {
+  epsilon = 0.17;
   difference() {
     asPlate()
       top();
@@ -83,10 +88,15 @@ module topWithHoles() {
     translate([axlePos, boxDepth/2, plateThickness-largeBearingDepth])
       cylinder(r=largeBearingOuterDia/2, h=largeBearingDepth+2*epsilon);
   }
+  if (for2D) {
+    // Something for the CNC to get the inner diameter in the 2D drawing.
+    translate([axlePos, boxDepth/2, plateThickness-0.5*largeBearingDepth])
+      cylinder(r=largeBearingFreeDia/2, h=largeBearingDepth, center=false);
+  }
 }
 
-module bottomWithHoles() {
-  epsilon = 0.0117;
+module bottomWithHoles(for2D=false) {
+  epsilon = 0.117;
   difference() {
     asPlate()
       top();
@@ -94,6 +104,11 @@ module bottomWithHoles() {
       cylinder(r=smallBearingFreeDia/2, h=plateThickness+2*epsilon, center=false);
     translate([axlePos, boxDepth/2, plateThickness-smallBearingDepth])
       cylinder(r=smallBearingOuterDia/2, h=smallBearingDepth+2*epsilon);
+  }
+  if (for2D) {
+    // Something for the CNC to get the inner diameter in the 2D drawing.
+    translate([axlePos, boxDepth/2, plateThickness-0.5*smallBearingDepth])
+      cylinder(r=smallBearingFreeDia/2, h=smallBearingDepth, center=false);
   }
 }
 
@@ -129,9 +144,11 @@ module foldedBox(expanded) {
 
 if (showFlat) {
   translate([0,boxHeight])
-    top();
+    in2D()
+      topWithHoles(for2D=true);
   translate([0,-boxDepth])
-    top();
+    in2D()
+      bottomWithHoles(for2D=true);
   translate([boxWidth,0])
     side();
   translate([-boxDepth,0])
@@ -163,10 +180,15 @@ module inBlue() {
 }
 
 module asPlate() {
-  linear_extrude(height=plateThickness)
+  linear_extrude(height=plateThickness, convexity=10)
     children();
 }
 
+module in2D() {
+  projection(cut=true)
+    translate([0, 0, -0.99*plateThickness])
+      children();
+}
 
 /*
   Create the tabs along the edge of a side of the box.
