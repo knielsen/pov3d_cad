@@ -1,6 +1,9 @@
+include <ledtorus_rotor.scad>
+
 showFlat = false;
 showFolded = true;
 showExpanded = true;
+showPlatter = true;
 
 boxDepth   = 200;    // x
 boxWidth   = 270;    // y
@@ -17,6 +20,9 @@ smallBearingDepth = 8;  // ToDo: Measure this.
 smallBearingOuterDia = 26;
 smallBearingInnerDia = 10;
 smallBearingFreeDia = smallBearingOuterDia - 2*2;
+
+// Space between top of box and bottom of LED-torus spindle mount (top of platter).
+distBoxTorus = 15;
 
 // Fine subdivisions, for production run
 $fa = 1; $fs = 0.1;
@@ -138,6 +144,12 @@ module foldedBox(expanded) {
       rotate([90,0,0])
         asPlate()
           backFront();
+  }
+
+  if (showPlatter) {
+    vertpos =  boxHeight + (showExpanded ? 2*plateThickness : 0) + distBoxTorus;
+    translate([axlePos, boxDepth/2, vertpos])
+      %ledtorus_rotor();
   }
 }
 
