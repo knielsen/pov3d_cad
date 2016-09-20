@@ -4,6 +4,7 @@ showFlat = false;
 showFolded = true;
 showExpanded = true;
 showPlatter = true;
+showOpenBox = true;
 
 boxDepth   = 200;    // x
 boxWidth   = 270;    // y
@@ -20,9 +21,15 @@ smallBearingDepth = 8;  // ToDo: Measure this.
 smallBearingOuterDia = 26;
 smallBearingInnerDia = 10;
 smallBearingFreeDia = smallBearingOuterDia - 2*2;
-
+// Distance between LED-torus axle and motor axle (min and max, adjustable).
+motorPosMin = 45;
+motorPosMax = 90;
+// Diameter of holes for fastening motor mount.
+motorFastenerDia = 4;
 // Space between top of box and bottom of LED-torus spindle mount (top of platter).
 distBoxTorus = 15;
+// Spacing between the two long holes for fastening motor mount.
+motorFastenerDist = 50;
 
 // Fine subdivisions, for production run
 $fa = 1; $fs = 0.1;
@@ -106,10 +113,23 @@ module bottomWithHoles(for2D=false) {
   difference() {
     asPlate()
       top();
+    // Room for the axle to not touch the box.
     translate([axlePos, boxDepth/2, -epsilon])
       cylinder(r=smallBearingFreeDia/2, h=plateThickness+2*epsilon, center=false);
+    // Hole fitting the lower, small ball bearing.
     translate([axlePos, boxDepth/2, plateThickness-smallBearingDepth])
       cylinder(r=smallBearingOuterDia/2, h=smallBearingDepth+2*epsilon);
+    // Holes for mounting motor, with some flexibility to adjust the belt tension.
+    for (i = [-0.5 : 1 : 0.5]) {
+      translate([0, i*motorFastenerDist, 0]) {
+        hull() {
+          translate([axlePos + motorPosMin, boxDepth/2, -epsilon])
+            cylinder(r=motorFastenerDia/2, h=plateThickness+2*epsilon, center=false);
+          translate([axlePos + motorPosMax, boxDepth/2, -epsilon])
+            cylinder(r=motorFastenerDia/2, h=plateThickness+2*epsilon, center=false);
+        }
+      }
+    }
   }
   if (for2D) {
     // Something for the CNC to get the inner diameter in the 2D drawing.
@@ -136,10 +156,12 @@ module foldedBox(expanded) {
           side();
   }
   inBlue() {
-    translate([0,plateThickness-delta,delta])
-      rotate([90,0,0])
-        asPlate()
-          backFront();
+    if (!showOpenBox) {
+      translate([0,plateThickness-delta,delta])
+        rotate([90,0,0])
+          asPlate()
+            backFront();
+    }
     translate([0,boxDepth+delta,delta])
       rotate([90,0,0])
         asPlate()
