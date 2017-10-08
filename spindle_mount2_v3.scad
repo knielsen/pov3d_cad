@@ -3,8 +3,8 @@ include <ledtorus2_hub.scad>
 enable_pcb = false;
 enable_supports = true;
 enable_sides = true;
-enable_mount_thingies = true;
-enable_hub = true;
+enable_mount_thingies = false;
+enable_hub = false;
 
 // Set an initial zoom that makes the whole thing visible.
 $vpt = $vpd < 200 ? [-5, 15, 50] : $vpt;
@@ -18,7 +18,9 @@ $fa = 1; $fs = 0.1;
 
 // Height of the filled-in bottom part of the base, where radius increases
 // with height.
-base_thick = 8;
+base_thick = 18.5;
+// Minimum thickness (in the cut-out part on the back).
+base_min_thick = 4;
 // Thickness of the bottom of the cut-out for the battery.
 base_thick3 = 10;
 // Height of the spindle mount. This value is the height above the filled-in
@@ -66,7 +68,7 @@ cutoff_z = axis_height +
 // Diameter of axle on rotor.
 axle_dia = 8;
 // For bolts mounting spindle_mount to hub on shaft.
-mount_bolt_lower_dia = 10.0;
+mount_bolt_lower_dia = 10.5;
 mount_bolt_lower_depth = 4.2;
 
 
@@ -126,12 +128,12 @@ module battery(bat_x, bat_y, bat_thick) {
 module base() {
   rad1 = base_lower_dia/2;
   rad2 = axis_dia/2;
-  balance_weight_cutout_depth = 4;
-  balance_weight_cutout_width = 58;
-  balance_weight_cutout_start = 26.5;
-  balance_weight_cutout_end = 62;
-  balance_weight_cutout_center = balance_weight_cutout_start +
-    (balance_weight_cutout_end-balance_weight_cutout_start)/2;//24.75;
+  back_cutout_depth = base_thick - base_min_thick;
+  back_cutout_dia1 = base_lower_dia;
+  back_cutout_dia2 = axis_dia - 2*sides_thick;
+  back_cutout_x = axis_dia/2;
+  back_cutout_bat_extra = 2.1;
+  back_cutout_epsilon = 0.01753;
   extra = 1.13;   // To avoid rendering glitches
 
   difference() {
@@ -155,18 +157,26 @@ module base() {
       }
     }
 
-    // Subtract a bit at the front for extra balancing weights, with a hole for
-    // a screw to hold the weights.
-    translate([balance_weight_cutout_center,
-                0,
-                base_thick-(balance_weight_cutout_depth-extra)/2]) {
-      cube([balance_weight_cutout_end - balance_weight_cutout_start,
-            balance_weight_cutout_width,
-            balance_weight_cutout_depth+extra],
-           center=true);
+    // Subtract something at the back to balance the extra weight of the back
+    // vertical wall.
+    intersection () {
+      translate([0, 0, base_thick-back_cutout_depth]) {
+        cylinder(h=back_cutout_depth+back_cutout_epsilon,
+                  d1=back_cutout_dia1,
+                  d2=back_cutout_dia2+back_cutout_epsilon);
+        translate([0, 0, back_cutout_depth])
+          cylinder(h=extra, d=back_cutout_dia2);
+      }
+      translate([0, 0, (base_thick+2*extra)/2]) {
+        difference() {
+          translate([-back_cutout_x/2, 0, 0])
+            cube([back_cutout_x, axis_dia, base_thick+2*extra], center=true);
+          cube([bat_width+(bat_holder_sides+back_cutout_bat_extra)*2,
+                bat_length+(bat_holder_sides+back_cutout_bat_extra)*2,
+                base_thick+2*extra], center=true);
+        }
+      }
     }
-    translate([38, 0, -extra])
-      cylinder(h=base_thick+2*extra, r=1.5+0.2, center=false);
 
     // Cutout for battery.
     battery(bat_width, bat_length, bat_thick);
@@ -178,9 +188,12 @@ module base() {
       rotate(i*360/6+90, [0,0,1]) {
 	translate([0, ledtorus2_hub_mounthole_dist, -0.1])
 	  cylinder(h = max(base_thick, base_thick3)+0.2, d=ledtorus2_hub_mounthole_d);
-        if ((i % 3) != 0) {
+        if (i != 0) {
           translate([0, ledtorus2_hub_mounthole_dist, base_thick3-mount_bolt_lower_depth])
             cylinder(h = bat_thick+mount_bolt_lower_depth+0.3, d=mount_bolt_lower_dia, center=false);
+        } else {
+          translate([0, ledtorus2_hub_mounthole_dist+2*back_cutout_epsilon, base_min_thick])
+            cylinder(h = bat_thick+base_thick+0.3, d=mount_bolt_lower_dia, center=false);
         }
       }
     }
@@ -483,6 +496,10 @@ module spindle_mount() {
 
 intersection() {
   spindle_mount();
+
+  // Debug
+  // Cut through the middle.
+  //translate([-500, 0, 0]) cube([1000,1000,1000], center=false);
 
   // Test prints.
 
