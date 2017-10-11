@@ -134,6 +134,8 @@ module base() {
   back_cutout_x = axis_dia/2;
   back_cutout_bat_extra = 2.1;
   back_cutout_epsilon = 0.01753;
+  velcro_cutout_width = 22;
+  velcro_cutout_length = 13;
   extra = 1.13;   // To avoid rendering glitches
 
   difference() {
@@ -188,12 +190,17 @@ module base() {
       rotate(i*360/6+90, [0,0,1]) {
 	translate([0, ledtorus2_hub_mounthole_dist, -0.1])
 	  cylinder(h = max(base_thick, base_thick3)+0.2, d=ledtorus2_hub_mounthole_d);
-        if (i != 0) {
-          translate([0, ledtorus2_hub_mounthole_dist, base_thick3-mount_bolt_lower_depth])
-            cylinder(h = bat_thick+mount_bolt_lower_depth+0.3, d=mount_bolt_lower_dia, center=false);
-        } else {
+        if (i == 0) {
           translate([0, ledtorus2_hub_mounthole_dist+2*back_cutout_epsilon, base_min_thick])
             cylinder(h = bat_thick+base_thick+0.3, d=mount_bolt_lower_dia, center=false);
+        } else if (i == 3) {
+          translate([0, ledtorus2_hub_mounthole_dist,
+                     base_thick3+0.5*(bat_thick-mount_bolt_lower_depth+0.3)])
+            cube([velcro_cutout_width, velcro_cutout_length,
+                  bat_thick+mount_bolt_lower_depth+0.3], center=true);
+        } else {
+          translate([0, ledtorus2_hub_mounthole_dist, base_thick3-mount_bolt_lower_depth])
+            cylinder(h = bat_thick+mount_bolt_lower_depth+0.3, d=mount_bolt_lower_dia, center=false);
         }
       }
     }
