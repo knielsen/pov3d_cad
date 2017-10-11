@@ -303,14 +303,14 @@ module mount_thingy_int(center_x, center_y, extra) {
   mount_thingy_hex_height = 6.0; // was 6.6;
   mount_thingy_hex_dia = 5.0;  // was 4.7;
   // Depression into spindle_mount, to ensure PCB can go flat against base.
-  mount_thingy_lower = 2.2;    // was 0.4;
+  mount_thingy_lower = 2.4;    // was 0.4;
   // Extra height to ensure proper difference()
   mount_thingy_above = mount_thingy_lower + 0.023;
   if (extra) {
     // Add the extra slack to the holes for the standoffs.
     cyl_height = mount_thingy_length + 0.6;
     cyl_dia = mount_thingy_cyl_dia + 2*0.2;
-    hex_height = mount_thingy_hex_height + 0.0;
+    hex_height = mount_thingy_hex_height + 0.6;
     hex_dia = mount_thingy_hex_dia + 0.25;
     cyl_base = cyl_height + mount_thingy_lower;
     hex_base = hex_height + mount_thingy_lower;
@@ -503,6 +503,7 @@ intersection() {
 
   // Test prints.
 
+  //translate([0, 0, 1]) cube([100, 100, 2], center=true);
   // Detail for test for ledtorus 2 mount.
   //%translate([40, 50, 20])
   //  cube([80, 90, 60], center=true);
