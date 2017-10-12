@@ -18,7 +18,7 @@ $fa = 1; $fs = 0.1;
 
 // Height of the filled-in bottom part of the base, where radius increases
 // with height.
-base_thick = 18.5;
+base_thick = 16.0;
 // Minimum thickness (in the cut-out part on the back).
 base_min_thick = 4;
 // Thickness of the bottom of the cut-out for the battery.
@@ -34,9 +34,8 @@ axis_dia = 149;
 skrue_dia = 3 + 0.35;
 // Distance of mounting screw hole center from mount center.
 skrue_dist = 54;
-// The diameter of the bottom of the base (which must fit within the space
-// available originally for the hard-disk platters).
-base_lower_dia = axis_dia-base_thick*2;
+// The diameter of the bottom of the base.
+base_lower_dia = axis_dia-base_thick*1.25;
 // Angle of the PCB with horizontal - this is an intrinsic property of the PCB
 // layout.
 pcb_angle=37.5;
