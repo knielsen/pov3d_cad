@@ -1,10 +1,18 @@
 include <ledtorus2_hub.scad>
 
-enable_pcb = true;
-enable_supports = false;
+enable_supports = true;
 enable_sides = false;
 enable_mount_thingies = false;
-enable_hub = true;
+
+// Options for turning various auxillary parts on or off.
+//
+// 0 means diabled; 1 means enabled (in transparance).
+// 2 means omit all other parts, for exporting specific parts as STL
+// separately.
+enable_pcb = 1;
+enable_hub = 1;
+enable_weights = 1;
+enable_top_fasteners = 1;
 
 // Set an initial zoom that makes the whole thing visible.
 $vpt = $vpd < 200 ? [-5, 15, 50] : $vpt;
@@ -26,7 +34,7 @@ base_thick3 = 10;
 // Height of the spindle mount. This value is the height above the filled-in
 // part of the base (base_thick) at which the bottom of the PCB intersects the
 // Z-axis (x=y=0).
-axis_height = 36;    // Was 47
+axis_height = 47;
 // The outer dimension of the mount.
 axis_dia = 149;
 // Diameter of mounting screws, including a bit of slack to account for
@@ -35,7 +43,7 @@ skrue_dia = 3 + 0.35;
 // Distance of mounting screw hole center from mount center.
 skrue_dist = 54;
 // The diameter of the bottom of the base.
-base_lower_dia = 130;
+base_lower_dia = 150;
 // Angle of the PCB with horizontal - this is an intrinsic property of the PCB
 // layout.
 pcb_angle=37.5;
@@ -74,6 +82,17 @@ mount_thingy_length = 12.1;  // was 10.5;
 mount_thingy_cyl_dia = 3.0;  // was 3.4;
 mount_thingy_hex_height = 6.0; // was 6.6;
 mount_thingy_hex_dia = 5.0;  // was 4.7;
+// Thickness of PLA between PCB and upper mount hex-nut.
+upper_mount_thick = 2.0;
+
+
+module cond_part(condition) {
+  if (condition == 1) {
+    %children();
+  } else if (condition == 2) {
+    !children();
+  }
+}
 
 
 // Switch to coordinates used to model the side of the spindle_mount.
@@ -164,6 +183,8 @@ module base() {
       }
     }
 
+    mount_thingy_lower(true);
+
     // Cutout for battery.
     battery(bat_width, bat_length, bat_thick);
 
@@ -196,7 +217,7 @@ module base() {
 module pcb(thick) {
   extra = 0.3;    // To prevent rendering glitches
 
-  %led_coords() {
+  led_coords() {
     difference() {
       linear_extrude(height=thick, center=false)
         polygon(points =
@@ -325,6 +346,133 @@ module mount_thingy_lower(extra) {
 }
 
 
+module m3_hex_nut() {
+  eps=0.00972;
+  difference() {
+    cylinder(h=2.3, d=5.4/cos(30), center=false, $fn=6);
+    translate([0, 0, -eps]) cylinder(h=2.3+2*eps, d=3.0, center=false);
+  }
+}
+
+
+module m3_screw() {
+  eps=0.01172;
+  translate([0, 0, -eps]) cylinder(h=6+eps, d=3, center=false);
+  translate([0, 0, -2]) cylinder(h=2, d=5.8, center=false);
+}
+
+
+module top_fasteners() {
+  led_coords() {
+    for (side = [-1:2:1]) {
+      translate([side*mount_center_x, mount_center_y, 0]) {
+        translate([0, 0, pcb_thick])
+          rotate([0, 180, 0])
+          m3_screw();
+        translate([0, 0, -upper_mount_thick])
+          rotate([0, 180, 90])
+          m3_hex_nut();
+      }
+    }
+  }
+}
+
+module upper_mount_subtract(skew_angle, leftright) {
+  eps=0.01;
+  spacer_y = 20;
+  spacer_z = 1.5;
+  spacer_x = axis_dia;
+  cutout_x = 5.4 + 0.3;
+  cutout_y1 = 3.5;
+  cutout_y2 = 5;
+  cutout_z = upper_mount_thick;
+  cutout_h = 40;
+
+  led_coords() {
+    multmatrix(m= [ [1, 0, 0, 0],
+                    [0, 1, tan(pcb_angle), 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1]])
+    translate([leftright*mount_center_x, mount_center_y - 5.0 -0.5*spacer_y, -0.5*spacer_z])
+      cube([spacer_x, spacer_y, spacer_z+eps], center=true);
+
+    translate([leftright*mount_center_x, mount_center_y, 0]) {
+      cylinder(d=3, h=40, center=true);
+      rotate([0, 0, -leftright*skew_angle]) {
+        translate([0, 0.5*(cutout_y1+cutout_y2)-cutout_y1, -cutout_z-0.5*cutout_h])
+          cube([cutout_x, cutout_y1+cutout_y2, cutout_h], center=true);
+      }
+    }
+  }
+}
+
+
+module pillars() {
+  hole_x = (pcb_thick+led_active_height)*sin(pcb_angle) +
+    mount_center_y*cos(pcb_angle);
+  hole_y = mount_center_x;
+  hole_z = base_thick + axis_height +
+    (pcb_thick+led_active_height)*sin(pcb_angle)*tan(pcb_angle) +
+    mount_center_y*sin(pcb_angle);
+  base_x = 28;
+  base_y = 25;
+  base_z = base_thick;
+  pillar_width = 12;
+  pillar_length = 15;
+  pillar_height = (hole_z - base_z) + 0.5*pillar_length*sin(pcb_angle);
+  skew_x = (hole_x-base_x)/(hole_z-base_z);
+  skew_y = (hole_y-base_y)/(hole_z-base_z);
+  skew_angle = atan(skew_y);
+  finn_thick = 3.2;
+  finn_x = 32;
+  finn_z = 42;
+
+  difference() {
+    union() {
+      translate([-base_x, -base_y, base_z]) {
+        multmatrix(m= [ [1, 0, -skew_x, 0],
+                        [0, 1, -skew_y, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 1]]) {
+          translate([0, 0, pillar_height/2])
+            cube([pillar_length, pillar_width, pillar_height], center=true);
+          rotate([0, 0, atan(pillar_length/pillar_width)])
+            rotate([90, 0, 90])
+            linear_extrude(height = finn_thick, center = true) {
+            polygon(points = [[-finn_x,0], [0, finn_z], [finn_x,0]]);
+          }
+          rotate([0, 0, atan(pillar_width/pillar_length)])
+            rotate([90, 0, 0])
+            linear_extrude(height = finn_thick, center = true) {
+            polygon(points = [[-finn_x,0], [0, finn_z], [0,0]]);
+          }
+        }
+      }
+      translate([-base_x, base_y, base_z])
+        multmatrix(m= [ [1, 0, -skew_x, 0],
+                        [0, 1, skew_y, 0],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 1]]) {
+          translate([0, 0, pillar_height/2])
+            cube([pillar_length, pillar_width, pillar_height], center=true);
+          rotate([0, 0, -atan(pillar_length/pillar_width)])
+            rotate([90, 0, 90])
+            linear_extrude(height = finn_thick, center = true) {
+            polygon(points = [[-finn_x,0], [0, finn_z], [finn_x,0]]);
+          }
+          rotate([0, 0, -atan(pillar_width/pillar_length)])
+            rotate([90, 0, 0])
+            linear_extrude(height = finn_thick, center = true) {
+            polygon(points = [[-finn_x,0], [0, finn_z], [0,0]]);
+          }
+      }
+    }
+    upper_mount_subtract(skew_angle, -1);
+    upper_mount_subtract(skew_angle, 1);
+  }
+}
+
+
 module spindle_mount_inner() {
   extra = 10;   // Extra to avoid rendering artifacts from co-planar polygons
   truncate_cube_height = axis_height*2 + base_thick + extra;
@@ -410,21 +558,7 @@ module highsupport() {
   width = 10;
   support_height = 2*axis_height;
   intersection() {
-    difference() {
-      union() {
-        led_coords() {
-          translate([-mount_center_x, mount_center_y + thick/2 - width/2, -support_height/2])
-            cube([width, thick, support_height], center=true);
-          translate([mount_center_x, mount_center_y + thick/2 - width/2, -support_height/2])
-            cube([width, thick, support_height], center=true);
-        }
-        sides_coords() {
-          translate([0, 0, cutoff_z])
-            cube([axis_dia, axis_dia, 2*sides_thick], center=true);
-        }
-      }
-      mount_thingy_upper(true);
-    }
+    pillars();
     spindle_mount_inner();
   }
 }
@@ -450,13 +584,31 @@ module lowsupport() {
 }
 
 
+module backweigth() {
+  w_thick = 4;
+  w_wide = 115;
+  w_long = 40;
+  translate([-(ledtorus2_hub_d2/2 + 1.5 + w_long/2), 0, -w_thick/2])
+    cube([w_long, w_wide, w_thick], center=true);
+}
+
+
+module frontweigth() {
+  w_thick = 4;
+  w_wide = 126;
+  w_long = 35;
+  translate([40 + w_long/2, 0, base_thick+w_thick/2])
+    cube([w_long, w_wide, w_thick], center=true);
+}
+
+
 module spindle_mount() {
   if (enable_supports) {
     highsupport();
     lowsupport();
   }
 
-  if (enable_pcb) {
+  cond_part(enable_pcb) {
     pcb(pcb_thick);
   }
 
@@ -471,9 +623,18 @@ module spindle_mount() {
     mount_thingy_upper(false);
   }
 
-  %if (enable_hub) {
+  cond_part (enable_top_fasteners) {
+    top_fasteners();
+  }
+
+  cond_part(enable_hub) {
     rotate([0, 0, 90])
       ledtorus2_hub();
+  }
+
+  cond_part(enable_weights) {
+    backweigth();
+    frontweigth();
   }
 }
 
