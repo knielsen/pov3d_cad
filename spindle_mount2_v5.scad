@@ -34,7 +34,7 @@ base_thick3 = 10;
 // Height of the spindle mount. This value is the height above the filled-in
 // part of the base (base_thick) at which the bottom of the PCB intersects the
 // Z-axis (x=y=0).
-axis_height = 47;
+axis_height = 52;    // Was: 47
 // The outer dimension of the mount.
 axis_dia = 149;
 // Diameter of mounting screws, including a bit of slack to account for
@@ -60,6 +60,8 @@ mount_center_x = 35.5;
 mount_center_y = 68;
 // Distance from pcb center to top edge of pcb.
 pcb_top_offset=74.5;
+// Width of the lower support pieces for mounting the PCB.
+lowsupport_breath = 10;
 // Battery cutout dimensions.
 bat_width = 31.2;
 bat_length = 52;
@@ -567,7 +569,7 @@ module highsupport() {
 module lowsupport() {
   thick = axis_dia/2;
   width = 13.5;
-  breadth = 10;
+  breadth = lowsupport_breath;
   height = axis_height;
   intersection() {
     difference() {
@@ -586,7 +588,7 @@ module lowsupport() {
 
 module backweigth() {
   w_thick = 4;
-  w_wide = 115;
+  w_wide = 115.5;
   w_long = 40;
   translate([-(ledtorus2_hub_d2/2 + 1.5 + w_long/2), 0, -w_thick/2])
     cube([w_long, w_wide, w_thick], center=true);
@@ -594,10 +596,10 @@ module backweigth() {
 
 
 module frontweigth() {
-  w_thick = 4;
-  w_wide = 126;
-  w_long = 35;
-  translate([40 + w_long/2, 0, base_thick+w_thick/2])
+  w_thick = 6;
+  w_wide = 2*mount_center_x-lowsupport_breath-0.5;
+  w_long = 52;
+  translate([30 + w_long/2, 0, base_thick+w_thick/2])
     cube([w_long, w_wide, w_thick], center=true);
 }
 
