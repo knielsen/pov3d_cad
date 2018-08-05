@@ -348,19 +348,33 @@ module mount_thingy_lower(extra) {
 }
 
 
-module m3_hex_nut() {
+// Hex nut in x-y plane, origin at bottom center. The outer width is the
+// distance between two parallel sides.
+module generic_hex_nut(thick, outer_width, inner_dia) {
   eps=0.00972;
   difference() {
-    cylinder(h=2.3, d=5.4/cos(30), center=false, $fn=6);
-    translate([0, 0, -eps]) cylinder(h=2.3+2*eps, d=3.0, center=false);
+    cylinder(h=thick, d=outer_width/cos(30), center=false, $fn=6);
+    translate([0, 0, -eps]) cylinder(h=thick+2*eps, d=inner_dia, center=false);
   }
 }
 
 
-module m3_screw() {
+// Screw along z-axis, origin on center axis at the transition from head to
+// main, tip of screw on positive end of z.
+module generic_screw(main_length, main_dia, head_thick, head_dia) {
   eps=0.01172;
-  translate([0, 0, -eps]) cylinder(h=6+eps, d=3, center=false);
-  translate([0, 0, -2]) cylinder(h=2, d=5.8, center=false);
+  translate([0, 0, -eps]) cylinder(h=main_length+eps, d=main_dia, center=false);
+  translate([0, 0, -head_thick]) cylinder(h=head_thick, d=head_dia, center=false);
+}
+
+
+module m3_hex_nut() {
+  generic_hex_nut(thick=2.3, outer_width=5.4, inner_dia=3.0);
+}
+
+
+module m3_screw() {
+  generic_screw(main_length=6, main_dia=3, head_thick=2, head_dia=5.8);
 }
 
 
