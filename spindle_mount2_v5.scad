@@ -2,7 +2,7 @@ include <ledtorus2_hub.scad>
 
 enable_supports = true;
 enable_sides = false;
-enable_mount_thingies = false;
+enable_sdcard = true;
 
 // Options for turning various auxillary parts on or off.
 //
@@ -13,6 +13,10 @@ enable_pcb = 1;
 enable_hub = 1;
 enable_weights = 1;
 enable_top_fasteners = 1;
+enable_bottom_fasteners = 1;
+enable_hub_fasteners = 1;
+enable_weight_fasteners = 1;
+enable_hub_setscrew = 1;
 
 // Set an initial zoom that makes the whole thing visible.
 $vpt = $vpd < 200 ? [-5, 15, 50] : $vpt;
@@ -20,9 +24,9 @@ $vpr = $vpd < 200 ? [83, 0, 114] : $vpr;
 $vpd = $vpd < 200 ? 400 : $vpd;
 
 // Fine subdivisions, for production run
-$fa = 1; $fs = 0.1;
+//$fa = 1; $fs = 0.1;
 // Coarse, but faster, subdivisions, for testing.
-//$fa = 8; $fs = 0.8;
+$fa = 8; $fs = 0.8;
 
 // Height of the filled-in bottom part of the base, where radius increases
 // with height.
@@ -86,6 +90,14 @@ mount_thingy_hex_height = 6.0; // was 6.6;
 mount_thingy_hex_dia = 5.0;  // was 4.7;
 // Thickness of PLA between PCB and upper mount hex-nut.
 upper_mount_thick = 2.0;
+// Thickness of counter-weights.
+backweight_thick = 4;
+frontweight_thick = 6;
+// Positions of fastener screws for counter-weights.
+backweight_screw_x = -53;
+backweight_screw_y = 22;
+frontweight_screw_x = 40;
+frontweight_screw_y = 17;
 
 
 module cond_part(condition) {
@@ -212,6 +224,9 @@ module base() {
     // Hole for axle (for precise centering of mount on rotor).
     translate([0, 0, -extra])
       cylinder(h=max(base_thick, base_thick3)+2*extra, r=axle_dia/2, center=false);
+
+    // Holes for fastening the counter-weights.
+    weight_fastener_holes();
   }
 }
 
@@ -281,6 +296,15 @@ module pcb(thick) {
 }
 
 
+module sdcard() {
+  led_coords() {
+    translate([-mount_center_x+11, -76, 0-0.00143])
+      translate([0.5*11, 0.5*15, -0.5*1])
+      %cube([11, 15, 1], center=true);
+  }
+}
+
+
 module hexagon(d, h, center=true) {
   cylinder(r=d/2*(2/sqrt(3)), h=h, center=center, $fn=6);
 }
@@ -298,10 +322,10 @@ module mount_thingy_int2(center_x, center_y,
                          hex_base, hex_dia, hex_heigth,
                          col1, col2) {
   led_coords() {
-    color(col1)
+//    color(col1)
     translate([center_x, center_y, -cyl_base])
       cylinder(h = cyl_height, r=cyl_dia/2);
-    color(col2)
+//    color(col2)
     translate([center_x, center_y, -hex_base])
       hexagon(d=hex_dia, h=hex_heigth, center=false);
   }
@@ -310,7 +334,7 @@ module mount_thingy_int2(center_x, center_y,
 
 module mount_thingy_int(center_x, center_y, extra) {
   // Depression into spindle_mount, to ensure PCB can go flat against base.
-  mount_thingy_lower = 2.4;    // was 0.4;
+  mount_thingy_lower = (extra ? 2.4 : 0.4);    // was 0.4;
   // Extra height to ensure proper difference()
   mount_thingy_above = mount_thingy_lower + 0.023;
   if (extra) {
@@ -363,7 +387,7 @@ module generic_hex_nut(thick, outer_width, inner_dia) {
 // main, tip of screw on positive end of z.
 module generic_screw(main_length, main_dia, head_thick, head_dia) {
   eps=0.01172;
-  translate([0, 0, -eps]) cylinder(h=main_length+eps, d=main_dia, center=false);
+  translate([0, 0, -eps]) cylinder(h=main_length+eps, d=main_dia+eps, center=false);
   translate([0, 0, -head_thick]) cylinder(h=head_thick, d=head_dia, center=false);
 }
 
@@ -375,6 +399,25 @@ module m3_hex_nut() {
 
 module m3_screw() {
   generic_screw(main_length=6, main_dia=3, head_thick=2, head_dia=5.8);
+}
+
+
+module m5_hex_nut() {
+  generic_hex_nut(thick=3.9, outer_width=9.9, inner_dia=5.0);
+}
+
+module m5_screw_16mm() {
+  generic_screw(main_length=16, main_dia=5, head_thick=3.6, head_dia=9.9);
+}
+
+
+module m5_screw_20mm() {
+  generic_screw(main_length=20, main_dia=5, head_thick=3.6, head_dia=9.9);
+}
+
+
+module hub_set_screw() {
+  generic_screw(main_length=12, main_dia=5.6, head_thick=6, head_dia=9.9);
 }
 
 
@@ -392,6 +435,73 @@ module top_fasteners() {
     }
   }
 }
+
+
+module bottom_fasteners() {
+  mount_thingy_lower(false);
+  led_coords() {
+    for (side = [-1:2:1]) {
+      translate([side*mount_center_x, -mount_center_y, 0]) {
+        translate([0, 0, pcb_thick])
+          rotate([0, 180, 0])
+          m3_screw();
+      }
+    }
+  }
+}
+
+
+module hub_fasteners() {
+  for (i = [0 : 5]) {
+    rotate(i*360/6+90, [0,0,1]) {
+      if (i == 0 || i == 3) {
+        translate([0, ledtorus2_hub_mounthole_dist, base_thick3 - mount_bolt_lower_depth])
+          rotate([180, 0, 0]) m5_screw_16mm();
+      } else {
+        translate([0, ledtorus2_hub_mounthole_dist, base_thick3-mount_bolt_lower_depth])
+          rotate([180, 0, 0]) m5_screw_16mm();
+      }
+      translate([0, ledtorus2_hub_mounthole_dist, -ledtorus2_hub_thick])
+        rotate([180, 0, 0])
+        m5_hex_nut();
+    }
+  }
+}
+
+module weight_fastener_holes() {
+  for (side = [-1:2:1]) {
+    translate([backweight_screw_x, side*backweight_screw_y, -backweight_thick-1]) {
+      cylinder(d=5, h=backweight_thick+base_thick+2, center=false);
+    }
+    translate([frontweight_screw_x, side*frontweight_screw_y, -1]) {
+        cylinder(d=5, h=frontweight_thick+base_thick+2, center=false);
+    }
+  }
+}
+
+
+module weight_fasteners() {
+  for (side = [-1:2:1]) {
+    translate([backweight_screw_x, side*backweight_screw_y, 0]) {
+      translate([0, 0, base_thick])
+        rotate([180, 0, 0])
+        m5_screw_16mm();
+      translate([0, 0, -backweight_thick])
+        rotate([180, 0, 0])
+        m5_hex_nut();
+    }
+
+    translate([frontweight_screw_x, side*frontweight_screw_y, 0]) {
+      translate([0, 0, base_thick+frontweight_thick])
+        rotate([180, 0, 0])
+        m5_screw_20mm();
+      translate([0, 0, 0])
+        rotate([180, 0, 0])
+        m5_hex_nut();
+    }
+  }
+}
+
 
 module upper_mount_subtract(skew_angle, leftright) {
   eps=0.01;
@@ -601,20 +711,26 @@ module lowsupport() {
 
 
 module backweigth() {
-  w_thick = 4;
+  w_thick = backweight_thick;
   w_wide = 115.5;
   w_long = 40;
-  translate([-(ledtorus2_hub_d2/2 + 1.5 + w_long/2), 0, -w_thick/2])
-    cube([w_long, w_wide, w_thick], center=true);
+  difference() {
+    translate([-(ledtorus2_hub_d2/2 + 1.5 + w_long/2), 0, -w_thick/2])
+      cube([w_long, w_wide, w_thick], center=true);
+    weight_fastener_holes();
+  }
 }
 
 
 module frontweigth() {
-  w_thick = 6;
+  w_thick = frontweight_thick;
   w_wide = 2*mount_center_x-lowsupport_breath-0.5;
   w_long = 52;
-  translate([30 + w_long/2, 0, base_thick+w_thick/2])
-    cube([w_long, w_wide, w_thick], center=true);
+  difference() {
+    translate([30 + w_long/2, 0, base_thick+w_thick/2])
+      cube([w_long, w_wide, w_thick], center=true);
+    weight_fastener_holes();
+  }
 }
 
 
@@ -627,6 +743,9 @@ module spindle_mount() {
   cond_part(enable_pcb) {
     pcb(pcb_thick);
   }
+  if (enable_sdcard) {
+    sdcard();
+  }
 
   base();
 
@@ -634,9 +753,8 @@ module spindle_mount() {
     sides();
   }
 
-  if (enable_mount_thingies) {
-    mount_thingy_lower(false);
-    mount_thingy_upper(false);
+  cond_part(enable_bottom_fasteners) {
+    bottom_fasteners();
   }
 
   cond_part (enable_top_fasteners) {
@@ -646,6 +764,19 @@ module spindle_mount() {
   cond_part(enable_hub) {
     rotate([0, 0, 90])
       ledtorus2_hub();
+  }
+  cond_part(enable_hub_setscrew) {
+    translate([0, -(12+0.5*ledtorus2_hub_bore_d), ledtorus2_hub_setscrew_pos])
+      rotate([-90, 0, 0])
+      hub_set_screw();
+  }
+
+  cond_part(enable_hub_fasteners) {
+    hub_fasteners();
+  }
+
+  cond_part(enable_weight_fasteners) {
+    weight_fasteners();
   }
 
   cond_part(enable_weights) {
