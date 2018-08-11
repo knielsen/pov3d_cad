@@ -38,7 +38,7 @@ base_thick3 = 10;
 // Height of the spindle mount. This value is the height above the filled-in
 // part of the base (base_thick) at which the bottom of the PCB intersects the
 // Z-axis (x=y=0).
-axis_height = 52;    // Was: 47
+axis_height = 53;    // Was: 47
 // The outer dimension of the mount.
 axis_dia = 149;
 // Diameter of mounting screws, including a bit of slack to account for
@@ -416,6 +416,11 @@ module m5_screw_20mm() {
 }
 
 
+module m5_screw_25mm() {
+  generic_screw(main_length=25, main_dia=5, head_thick=3.6, head_dia=9.9);
+}
+
+
 module hub_set_screw() {
   generic_screw(main_length=12, main_dia=5.6, head_thick=6, head_dia=9.9);
 }
@@ -457,6 +462,13 @@ module hub_fasteners() {
       if (i == 0 || i == 3) {
         translate([0, ledtorus2_hub_mounthole_dist, base_thick3 - mount_bolt_lower_depth])
           rotate([180, 0, 0]) m5_screw_16mm();
+      } else if (i == 4 || i == 5) {
+        // Try to compensate for the set-screw in the hub.
+        translate([0, ledtorus2_hub_mounthole_dist, base_thick3-mount_bolt_lower_depth])
+          rotate([180, 0, 0]) m5_screw_25mm();
+        translate([0, ledtorus2_hub_mounthole_dist, -ledtorus2_hub_thick-3.9-0.1])
+          rotate([180, 0, 0])
+          m5_hex_nut();
       } else {
         translate([0, ledtorus2_hub_mounthole_dist, base_thick3-mount_bolt_lower_depth])
           rotate([180, 0, 0]) m5_screw_16mm();
@@ -713,7 +725,7 @@ module lowsupport() {
 module backweigth() {
   w_thick = backweight_thick;
   w_wide = 115.5;
-  w_long = 40;
+  w_long = 41.05;
   difference() {
     translate([-(ledtorus2_hub_d2/2 + 1.5 + w_long/2), 0, -w_thick/2])
       cube([w_long, w_wide, w_thick], center=true);
@@ -725,7 +737,7 @@ module backweigth() {
 module frontweigth() {
   w_thick = frontweight_thick;
   w_wide = 2*mount_center_x-lowsupport_breath-0.5;
-  w_long = 52;
+  w_long = 53.15;
   difference() {
     translate([30 + w_long/2, 0, base_thick+w_thick/2])
       cube([w_long, w_wide, w_thick], center=true);
