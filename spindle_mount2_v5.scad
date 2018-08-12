@@ -38,7 +38,7 @@ base_thick3 = 10;
 // Height of the spindle mount. This value is the height above the filled-in
 // part of the base (base_thick) at which the bottom of the PCB intersects the
 // Z-axis (x=y=0).
-axis_height = 53;    // Was: 47
+axis_height = 49;    // Was: 47
 // The outer dimension of the mount.
 axis_dia = 149;
 // Diameter of mounting screws, including a bit of slack to account for
@@ -91,13 +91,15 @@ mount_thingy_hex_dia = 5.0;  // was 4.7;
 // Thickness of PLA between PCB and upper mount hex-nut.
 upper_mount_thick = 2.0;
 // Thickness of counter-weights.
-backweight_thick = 4;
+backweight_thick = 8;
 frontweight_thick = 6;
 // Positions of fastener screws for counter-weights.
 backweight_screw_x = -53;
 backweight_screw_y = 22;
 frontweight_screw_x = 40;
 frontweight_screw_y = 17;
+velcro_cutout_width = 22;
+velcro_cutout_length = 13;
 
 
 module cond_part(condition) {
@@ -172,8 +174,6 @@ module base() {
   back_cutout_x = axis_dia/2;
   back_cutout_bat_extra = 2.1;
   back_cutout_epsilon = 0.01753;
-  velcro_cutout_width = 22;
-  velcro_cutout_length = 13;
   extra = 1.13;   // To avoid rendering glitches
 
   difference() {
@@ -716,6 +716,7 @@ module lowsupport() {
           cube([breadth, thick, height], center=true);
       }
       mount_thingy_lower(true);
+      cube([2*42, axis_dia, axis_height], center=true);
     }
     spindle_mount_inner();
   }
@@ -724,10 +725,10 @@ module lowsupport() {
 
 module backweigth() {
   w_thick = backweight_thick;
-  w_wide = 115.5;
-  w_long = 41.05;
+  w_wide = 90;
+  w_long = 25.15;
   difference() {
-    translate([-(ledtorus2_hub_d2/2 + 1.5 + w_long/2), 0, -w_thick/2])
+    translate([-(ledtorus2_hub_d2/2 + 6.35 + w_long/2), 0, -w_thick/2])
       cube([w_long, w_wide, w_thick], center=true);
     weight_fastener_holes();
   }
@@ -737,10 +738,52 @@ module backweigth() {
 module frontweigth() {
   w_thick = frontweight_thick;
   w_wide = 2*mount_center_x-lowsupport_breath-0.5;
-  w_long = 53.15;
+  w_long = 50;
+  w_x0 = 20;
+  w_x1 = 30;
+  w_x2 = 42-0.5;
+  w_x2a = 48;
+  w_x3 = 55;
+  w_ymin = 0.5*velcro_cutout_width;
+  w_y0 = 0.5*w_wide;
+  w_y1 = w_y0 + 2*0.5 + lowsupport_breath;
+  w_y2 = 60;
+
   difference() {
-    translate([30 + w_long/2, 0, base_thick+w_thick/2])
-      cube([w_long, w_wide, w_thick], center=true);
+//    translate([w_x1 + w_long/2, 0, base_thick+w_thick/2])
+//      cube([w_long, w_wide, w_thick], center=true);
+    union() {
+    translate([0, 0, base_thick])
+    linear_extrude(height = 2, center = false, convexity=10) {
+      polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
+                        [w_x3,-w_y2], [w_x3,-w_y1], [w_x2,-w_y1], [w_x2,-w_y0],
+                        [w_x1+w_long,-w_y0],
+                        [w_x1+w_long,w_y0],
+                        [w_x2,w_y0], [w_x2,w_y1], [w_x3,w_y1], [w_x3,w_y2],
+                        [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
+                        ]);
+    }
+    translate([0, 0, base_thick+2])
+    linear_extrude(height = 2, center = false, convexity=10) {
+      polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
+                        [w_x3,-w_y2], [w_x3,-w_y1], [w_x2,-w_y1], [w_x2,-w_y0],
+                        [w_x3,-w_y0],
+                        [w_x3,w_y0],
+                        [w_x2,w_y0], [w_x2,w_y1], [w_x3,w_y1], [w_x3,w_y2],
+                        [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
+                        ]);
+    }
+    translate([0, 0, base_thick+4])
+    linear_extrude(height = 2, center = false, convexity=10) {
+      polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
+                        [w_x3,-w_y2], [w_x3,-w_y1], [w_x2,-w_y1], [w_x2,-w_y0],
+                        [w_x2a,-w_y0],
+                        [w_x2a,w_y0],
+                        [w_x2,w_y0], [w_x2,w_y1], [w_x3,w_y1], [w_x3,w_y2],
+                        [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
+                        ]);
+    }
+    }
     weight_fastener_holes();
   }
 }
