@@ -26,7 +26,7 @@ $vpd = $vpd < 200 ? 400 : $vpd;
 // Fine subdivisions, for production run
 //$fa = 1; $fs = 0.1;
 // Coarse, but faster, subdivisions, for testing.
-$fa = 8; $fs = 0.8;
+$fa = 2; $fs = 0.3;
 
 // Height of the filled-in bottom part of the base, where radius increases
 // with height.
@@ -726,7 +726,7 @@ module lowsupport() {
 
 module backweigth() {
   w_thick = backweight_thick;
-  w_wide = 45;
+  w_wide = 44.75;
   w_long = 25;
   eps=0.00731;
 
@@ -749,10 +749,7 @@ module frontweigth() {
   w_x1 = 30;
   w_x2 = 42-0.5;
   w_x2a = 48;
-  w_x3 = 54;
-  w_x3b = w_x3 - 2/tan(pcb_angle);
-  w_x3c = w_x3b - 2/tan(pcb_angle);
-  w_x3d = w_x3c - 2/tan(pcb_angle);
+  w_x3 = 53.76;
   w_ymin = 0.5*velcro_cutout_width;
   w_y0 = 0.5*w_wide;
   w_y1 = w_y0 + 2*0.5 + lowsupport_breath;
@@ -762,55 +759,17 @@ module frontweigth() {
   difference() {
     intersection() {
       union() {
-//        translate([0, 0, base_thick])
-//          linear_extrude(height = 2, center = false, convexity=10) {
-//          polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
-//                            [w_x2,-w_y2], [w_x2,-w_y0],
-//                            [w_x1+w_long,-w_y0],
-//                            [w_x1+w_long,w_y0],
-//                            [w_x2,w_y0], [w_x2,w_y2],
-//                            [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
-//                            ]);
-//        }
-        translate([0, 0, base_thick])
-          linear_extrude(height = 2, center = false, convexity=10) {
-          polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
-                            [w_x2,-w_y2], [w_x2,-w_y0],
-                            [w_x3,-w_y0],
-                            [w_x3,w_y0],
-                            [w_x2,w_y0], [w_x2,w_y2],
-                            [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
-                            ]);
-        }
-        translate([0, 0, base_thick+2])
-          linear_extrude(height = 2, center = false, convexity=10) {
-          polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
-                            [w_x2,-w_y2], [w_x2,-w_y0],
-                            [w_x3b,-w_y0],
-                            [w_x3b,w_y0],
-                            [w_x2,w_y0], [w_x2,w_y2],
-                            [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
-                            ]);
-        }
-        translate([0, 0, base_thick+4])
-          linear_extrude(height = 2, center = false, convexity=10) {
-          polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
-                            [w_x2,-w_y2], [w_x2,-w_y0],
-                            [w_x3c,-w_y0],
-                            [w_x3c,w_y0],
-                            [w_x2,w_y0], [w_x2,w_y2],
-                            [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
-                            ]);
-        }
-        translate([0, 0, base_thick+6])
-          linear_extrude(height = 2, center = false, convexity=10) {
-          polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
-                            [w_x2,-w_y2], [w_x2,-w_y0],
-                            [w_x3d,-w_y0],
-                            [w_x3d,w_y0],
-                            [w_x2,w_y0], [w_x2,w_y2],
-                            [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
-                            ]);
+        for (i = [0 : 3]) {
+          translate([0, 0, base_thick+2*i])
+            linear_extrude(height = 2, center = false, convexity=10) {
+            polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
+                              [w_x2,-w_y2], [w_x2,-w_y0],
+                              [w_x3 - i*2/tan(pcb_angle), -w_y0],
+                              [w_x3 - i*2/tan(pcb_angle), w_y0],
+                              [w_x2,w_y0], [w_x2,w_y2],
+                              [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
+                              ]);
+          }
         }
       }
       cylinder(h = 2*axis_height, d=base_lower_dia-eps, center=true);
