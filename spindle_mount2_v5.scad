@@ -38,7 +38,7 @@ base_thick3 = 10;
 // Height of the spindle mount. This value is the height above the filled-in
 // part of the base (base_thick) at which the bottom of the PCB intersects the
 // Z-axis (x=y=0).
-axis_height = 49;    // Was: 47
+axis_height = 47;    // Was: 47
 // The outer dimension of the mount.
 axis_dia = 149;
 // Diameter of mounting screws, including a bit of slack to account for
@@ -91,13 +91,13 @@ mount_thingy_hex_dia = 5.0;  // was 4.7;
 // Thickness of PLA between PCB and upper mount hex-nut.
 upper_mount_thick = 2.0;
 // Thickness of counter-weights.
-backweight_thick = 8;
-frontweight_thick = 6;
+backweight_thick = 6*2;
+frontweight_thick = 4*2;
 // Positions of fastener screws for counter-weights.
-backweight_screw_x = -53;
-backweight_screw_y = 22;
-frontweight_screw_x = 40;
-frontweight_screw_y = 17;
+backweight_screw_x = -61;
+backweight_screw_y = 15;
+frontweight_screw_x = 35;
+frontweight_screw_y = 20;
 velcro_cutout_width = 22;
 velcro_cutout_length = 13;
 
@@ -161,6 +161,41 @@ module battery(bat_x, bat_y, bat_thick) {
         polygon(points = [[-bat_x/2,-bat_y/2], [bat_x/2,-bat_y/2],
                           [bat_x/2,bat_y/2], [-bat_x/2,bat_y/2]]);
       }
+  }
+}
+
+
+module weight_fastener_holes() {
+  for (side = [-1:2:1]) {
+    translate([backweight_screw_x, side*backweight_screw_y, -backweight_thick-1]) {
+      cylinder(d=5, h=backweight_thick+base_thick+2, center=false);
+    }
+    translate([frontweight_screw_x, side*frontweight_screw_y, -1]) {
+        cylinder(d=5, h=frontweight_thick+base_thick+2, center=false);
+    }
+  }
+}
+
+
+module weight_fasteners() {
+  for (side = [-1:2:1]) {
+    translate([backweight_screw_x, side*backweight_screw_y, 0]) {
+      translate([0, 0, base_thick])
+        rotate([180, 0, 0])
+        m5_screw_25mm();
+      translate([0, 0, -backweight_thick])
+        rotate([180, 0, 0])
+        m5_hex_nut();
+    }
+
+    translate([frontweight_screw_x, side*frontweight_screw_y, 0]) {
+      translate([0, 0, base_thick+frontweight_thick])
+        rotate([180, 0, 0])
+        m5_screw_20mm();
+      translate([0, 0, 0])
+        rotate([180, 0, 0])
+        m5_hex_nut();
+    }
   }
 }
 
@@ -480,40 +515,6 @@ module hub_fasteners() {
   }
 }
 
-module weight_fastener_holes() {
-  for (side = [-1:2:1]) {
-    translate([backweight_screw_x, side*backweight_screw_y, -backweight_thick-1]) {
-      cylinder(d=5, h=backweight_thick+base_thick+2, center=false);
-    }
-    translate([frontweight_screw_x, side*frontweight_screw_y, -1]) {
-        cylinder(d=5, h=frontweight_thick+base_thick+2, center=false);
-    }
-  }
-}
-
-
-module weight_fasteners() {
-  for (side = [-1:2:1]) {
-    translate([backweight_screw_x, side*backweight_screw_y, 0]) {
-      translate([0, 0, base_thick])
-        rotate([180, 0, 0])
-        m5_screw_16mm();
-      translate([0, 0, -backweight_thick])
-        rotate([180, 0, 0])
-        m5_hex_nut();
-    }
-
-    translate([frontweight_screw_x, side*frontweight_screw_y, 0]) {
-      translate([0, 0, base_thick+frontweight_thick])
-        rotate([180, 0, 0])
-        m5_screw_20mm();
-      translate([0, 0, 0])
-        rotate([180, 0, 0])
-        m5_hex_nut();
-    }
-  }
-}
-
 
 module upper_mount_subtract(skew_angle, leftright) {
   eps=0.01;
@@ -725,12 +726,17 @@ module lowsupport() {
 
 module backweigth() {
   w_thick = backweight_thick;
-  w_wide = 90;
-  w_long = 25.15;
-  difference() {
-    translate([-(ledtorus2_hub_d2/2 + 6.35 + w_long/2), 0, -w_thick/2])
-      cube([w_long, w_wide, w_thick], center=true);
-    weight_fastener_holes();
+  w_wide = 45;
+  w_long = 25;
+  eps=0.00731;
+
+  intersection() {
+    difference() {
+      translate([-(ledtorus2_hub_d2/2 + 25 + w_long/2), 0, -w_thick/2])
+        cube([w_long, w_wide, w_thick], center=true);
+      weight_fastener_holes();
+    }
+    cylinder(h = 2*axis_height, d=base_lower_dia-eps, center=true);
   }
 }
 
@@ -743,46 +749,71 @@ module frontweigth() {
   w_x1 = 30;
   w_x2 = 42-0.5;
   w_x2a = 48;
-  w_x3 = 55;
+  w_x3 = 54;
+  w_x3b = w_x3 - 2/tan(pcb_angle);
+  w_x3c = w_x3b - 2/tan(pcb_angle);
+  w_x3d = w_x3c - 2/tan(pcb_angle);
   w_ymin = 0.5*velcro_cutout_width;
   w_y0 = 0.5*w_wide;
   w_y1 = w_y0 + 2*0.5 + lowsupport_breath;
-  w_y2 = 60;
+  w_y2 = axis_dia/2;
+  eps = 0.00731;
 
   difference() {
-//    translate([w_x1 + w_long/2, 0, base_thick+w_thick/2])
-//      cube([w_long, w_wide, w_thick], center=true);
-    union() {
-    translate([0, 0, base_thick])
-    linear_extrude(height = 2, center = false, convexity=10) {
-      polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
-                        [w_x3,-w_y2], [w_x3,-w_y1], [w_x2,-w_y1], [w_x2,-w_y0],
-                        [w_x1+w_long,-w_y0],
-                        [w_x1+w_long,w_y0],
-                        [w_x2,w_y0], [w_x2,w_y1], [w_x3,w_y1], [w_x3,w_y2],
-                        [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
-                        ]);
-    }
-    translate([0, 0, base_thick+2])
-    linear_extrude(height = 2, center = false, convexity=10) {
-      polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
-                        [w_x3,-w_y2], [w_x3,-w_y1], [w_x2,-w_y1], [w_x2,-w_y0],
-                        [w_x3,-w_y0],
-                        [w_x3,w_y0],
-                        [w_x2,w_y0], [w_x2,w_y1], [w_x3,w_y1], [w_x3,w_y2],
-                        [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
-                        ]);
-    }
-    translate([0, 0, base_thick+4])
-    linear_extrude(height = 2, center = false, convexity=10) {
-      polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
-                        [w_x3,-w_y2], [w_x3,-w_y1], [w_x2,-w_y1], [w_x2,-w_y0],
-                        [w_x2a,-w_y0],
-                        [w_x2a,w_y0],
-                        [w_x2,w_y0], [w_x2,w_y1], [w_x3,w_y1], [w_x3,w_y2],
-                        [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
-                        ]);
-    }
+    intersection() {
+      union() {
+//        translate([0, 0, base_thick])
+//          linear_extrude(height = 2, center = false, convexity=10) {
+//          polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
+//                            [w_x2,-w_y2], [w_x2,-w_y0],
+//                            [w_x1+w_long,-w_y0],
+//                            [w_x1+w_long,w_y0],
+//                            [w_x2,w_y0], [w_x2,w_y2],
+//                            [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
+//                            ]);
+//        }
+        translate([0, 0, base_thick])
+          linear_extrude(height = 2, center = false, convexity=10) {
+          polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
+                            [w_x2,-w_y2], [w_x2,-w_y0],
+                            [w_x3,-w_y0],
+                            [w_x3,w_y0],
+                            [w_x2,w_y0], [w_x2,w_y2],
+                            [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
+                            ]);
+        }
+        translate([0, 0, base_thick+2])
+          linear_extrude(height = 2, center = false, convexity=10) {
+          polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
+                            [w_x2,-w_y2], [w_x2,-w_y0],
+                            [w_x3b,-w_y0],
+                            [w_x3b,w_y0],
+                            [w_x2,w_y0], [w_x2,w_y2],
+                            [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
+                            ]);
+        }
+        translate([0, 0, base_thick+4])
+          linear_extrude(height = 2, center = false, convexity=10) {
+          polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
+                            [w_x2,-w_y2], [w_x2,-w_y0],
+                            [w_x3c,-w_y0],
+                            [w_x3c,w_y0],
+                            [w_x2,w_y0], [w_x2,w_y2],
+                            [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
+                            ]);
+        }
+        translate([0, 0, base_thick+6])
+          linear_extrude(height = 2, center = false, convexity=10) {
+          polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
+                            [w_x2,-w_y2], [w_x2,-w_y0],
+                            [w_x3d,-w_y0],
+                            [w_x3d,w_y0],
+                            [w_x2,w_y0], [w_x2,w_y2],
+                            [w_x0, w_y2], [w_x0,w_ymin], [w_x1,w_ymin]
+                            ]);
+        }
+      }
+      cylinder(h = 2*axis_height, d=base_lower_dia-eps, center=true);
     }
     weight_fastener_holes();
   }
