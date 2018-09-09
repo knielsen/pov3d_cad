@@ -3,6 +3,8 @@ include <ledtorus2_hub.scad>
 enable_supports = true;
 enable_sides = false;
 enable_sdcard = true;
+// Can be set externally to generate 2D for CNC-cutting the weights.
+do_weights_2d = false;
 
 // Options for turning various auxillary parts on or off.
 //
@@ -91,8 +93,11 @@ mount_thingy_hex_dia = 5.0;  // was 4.7;
 // Thickness of PLA between PCB and upper mount hex-nut.
 upper_mount_thick = 2.0;
 // Thickness of counter-weights.
-backweight_thick = 6*2;
-frontweight_thick = 4*2;
+weight_plate_thick = 2;
+backweight_count = 6;
+frontweight_count = 4;
+backweight_thick = backweight_count*weight_plate_thick;
+frontweight_thick = frontweight_count*weight_plate_thick;
 // Positions of fastener screws for counter-weights.
 backweight_screw_x = -61;
 backweight_screw_y = 15;
@@ -759,9 +764,9 @@ module frontweigth() {
   difference() {
     intersection() {
       union() {
-        for (i = [0 : 3]) {
-          translate([0, 0, base_thick+2*i])
-            linear_extrude(height = 2, center = false, convexity=10) {
+        for (i = [0 : (frontweight_count-1)]) {
+          translate([0, 0, base_thick+weight_plate_thick*i])
+            linear_extrude(height = weight_plate_thick, center = false, convexity=10) {
             polygon(points = [[w_x1,-w_ymin], [w_x0,-w_ymin], [w_x0, -w_y2],
                               [w_x2,-w_y2], [w_x2,-w_y0],
                               [w_x3 - i*2/tan(pcb_angle), -w_y0],
@@ -831,17 +836,32 @@ module spindle_mount() {
 }
 
 
-intersection() {
-  spindle_mount();
+if (do_weights_2d) {
+  for (i = [0 : (backweight_count-1)]) {
+    projection(cut=true) {
+      translate([i*35, 0, (.5+i)*weight_plate_thick])
+        backweigth();
+    }
+  }
+  for (i = [0 : (frontweight_count-1)]) {
+    projection(cut=true) {
+      translate([(i-frontweight_count/2)*42, -100, -base_thick - (.5+i)*weight_plate_thick])
+        frontweigth();
+    }
+  }
+} else {
+  intersection() {
+    spindle_mount();
 
-  // Debug
-  // Cut through the middle.
-  //translate([-500, 0, 0]) cube([1000,1000,1000], center=false);
+    // Debug
+    // Cut through the middle.
+    //translate([-500, 0, 0]) cube([1000,1000,1000], center=false);
 
-  // Test prints.
+    // Test prints.
 
-  //translate([0, 0, 1]) cube([100, 100, 2], center=true);
-  // Detail for test for ledtorus 2 mount.
-  //%translate([40, 50, 20])
-  //  cube([80, 90, 60], center=true);
+    //translate([0, 0, 1]) cube([100, 100, 2], center=true);
+    // Detail for test for ledtorus 2 mount.
+    //%translate([40, 50, 20])
+    //  cube([80, 90, 60], center=true);
+  }
 }
