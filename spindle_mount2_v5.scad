@@ -580,6 +580,12 @@ module pillars() {
                         [0, 0, 0, 1]]) {
           translate([0, 0, pillar_height/2])
             cube([pillar_length, pillar_width, pillar_height], center=true);
+          multmatrix(m=[[sqrt(2)*pillar_length,0,0,0],
+                        [0,sqrt(2)*pillar_width,0,0]
+                        ,[0,0,.5*sqrt(2)*(pillar_length+pillar_width),0]
+                        ,[0,0,0,1]])
+            rotate([0, 0, 45])
+            cylinder(h=1.2, d1=1.4, d2=0.1, center=false, $fn=4);
           rotate([0, 0, atan(pillar_length/pillar_width)])
             rotate([90, 0, 90])
             linear_extrude(height = finn_thick, center = true) {
@@ -599,6 +605,12 @@ module pillars() {
                         [0, 0, 0, 1]]) {
           translate([0, 0, pillar_height/2])
             cube([pillar_length, pillar_width, pillar_height], center=true);
+          multmatrix(m=[[sqrt(2)*pillar_length,0,0,0],
+                        [0,sqrt(2)*pillar_width,0,0]
+                        ,[0,0,.5*sqrt(2)*(pillar_length+pillar_width),0]
+                        ,[0,0,0,1]])
+            rotate([0, 0, 45])
+            cylinder(h=1.2, d1=1.4, d2=0.1, center=false, $fn=4);
           rotate([0, 0, -atan(pillar_length/pillar_width)])
             rotate([90, 0, 90])
             linear_extrude(height = finn_thick, center = true) {
@@ -861,7 +873,14 @@ if (do_weights_2d) {
 
     //translate([0, 0, 1]) cube([100, 100, 2], center=true);
     // Detail for test for ledtorus 2 mount.
-    //%translate([40, 50, 20])
-    //  cube([80, 90, 60], center=true);
+    // Low mount hole
+    //translate([50, 35, 20])
+    //  cube([30, 25, 60], center=true);
+    // High mount hole
+    //translate([-50, 35, 100])
+    //  cube([30, 25, 60], center=true);
+    // Hub mounting holes
+    //translate([0, 0, 6])
+    //  cube([60, 60, 15], center=true);
   }
 }
