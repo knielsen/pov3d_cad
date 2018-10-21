@@ -26,9 +26,9 @@ $vpr = $vpd < 200 ? [83, 0, 114] : $vpr;
 $vpd = $vpd < 200 ? 400 : $vpd;
 
 // Fine subdivisions, for production run
-//$fa = 1; $fs = 0.1;
+$fa = 1; $fs = 0.1;
 // Coarse, but faster, subdivisions, for testing.
-$fa = 2; $fs = 0.3;
+//$fa = 2; $fs = 0.3;
 
 // Height of the filled-in bottom part of the base, where radius increases
 // with height.
@@ -173,10 +173,10 @@ module battery(bat_x, bat_y, bat_thick) {
 module weight_fastener_holes() {
   for (side = [-1:2:1]) {
     translate([backweight_screw_x, side*backweight_screw_y, -backweight_thick-1]) {
-      cylinder(d=5, h=backweight_thick+base_thick+2, center=false);
+      cylinder(d=5.15, h=backweight_thick+base_thick+2, center=false);
     }
     translate([frontweight_screw_x, side*frontweight_screw_y, -1]) {
-        cylinder(d=5, h=frontweight_thick+base_thick+2, center=false);
+        cylinder(d=5.15, h=frontweight_thick+base_thick+2, center=false);
     }
   }
 }
@@ -263,7 +263,7 @@ module base() {
     }
     // Hole for axle (for precise centering of mount on rotor).
     translate([0, 0, -extra])
-      cylinder(h=max(base_thick, base_thick3)+2*extra, r=axle_dia/2, center=false);
+      cylinder(h=max(base_thick, base_thick3)+2*extra, r=axle_dia/2+0.075, center=false);
 
     // Holes for fastening the counter-weights.
     weight_fastener_holes();
@@ -380,9 +380,9 @@ module mount_thingy_int(center_x, center_y, extra) {
   if (extra) {
     // Add the extra slack to the holes for the standoffs.
     cyl_height = mount_thingy_length + 0.6;
-    cyl_dia = mount_thingy_cyl_dia + 2*0.2;
-    hex_height = mount_thingy_hex_height + 0.6;
-    hex_dia = mount_thingy_hex_dia + 0.25;
+    cyl_dia = mount_thingy_cyl_dia + 2*0.1;
+    hex_height = mount_thingy_hex_height + 0.3;
+    hex_dia = mount_thingy_hex_dia + 0.075;
     cyl_base = cyl_height + mount_thingy_lower;
     hex_base = hex_height + mount_thingy_lower;
     mount_thingy_int2(center_x, center_y, cyl_base, cyl_dia, cyl_height,
@@ -875,12 +875,18 @@ if (do_weights_2d) {
     // Detail for test for ledtorus 2 mount.
     // Low mount hole
     //translate([50, 35, 20])
-    //  cube([30, 25, 60], center=true);
+    //  cube([20, 12, 60], center=true);
     // High mount hole
     //translate([-50, 35, 100])
     //  cube([30, 25, 60], center=true);
-    // Hub mounting holes
+    // Hub mounting hole
+    //translate([-12, 21, 6])
+    //  cube([13, 14, 15], center=true);
+    // Weight mounting hole.
+    //translate([-61, 15, 6])
+    //  cube([11, 12, 15], center=true);
+    // Axle hole
     //translate([0, 0, 6])
-    //  cube([60, 60, 15], center=true);
+    //  cube([12, 12, 15], center=true);
   }
 }

@@ -8,7 +8,7 @@ ledtorus2_hub_d1 = 24;
 ledtorus2_hub_d2 = 56.8;
 ledtorus2_hub_bore_d = 8;
 ledtorus2_hub_mounthole_dist = 47.5/2;
-ledtorus2_hub_mounthole_d = 5.2;
+ledtorus2_hub_mounthole_d = 5.15;
 ledtorus2_hub_setscrew_d = 6;
 ledtorus2_hub_setscrew_pos = -ledtorus2_hub_height+10.2;
 
