@@ -18,7 +18,8 @@ axis_height = 69;
 axis_dia = 80;
 krave_high = 8;
 krave_thick = 2.5;
-skrue_dia = 2.2;
+skrue_dia = 2;
+skrue_head_dia = 4;
 skrue_dist = 18.5/2;
 center_piece_rad = 5.5+0.3;
 pcb_angle=37.5;
@@ -28,6 +29,14 @@ sides_thick=1.0;
 led_thick=0.25;
 led_protude=0.62;
 led_dot_offset=led_thick+led_protude*0.2;
+
+hole_tolerance1 = 0.05;
+hole_tolerance2 = 0.1;
+hole_tolerance3 = 0.4;
+// Fine subdivisions, for production run
+//$fa = 1; $fs = 0.1;
+// Coarse, but faster, subdivisions, for testing.
+$fa = 2; $fs = 0.3;
 
 module my_colour(col) {
   if (with_colour) {
@@ -56,15 +65,15 @@ module battery(bat_x, bat_y, bat_thick) {
 module base(thick, rad) {
   difference() {
     scale([squash,1,1])
-      cylinder(h = thick, r1= rad-0.75*thick, r2 = rad, $fn=120);
+      cylinder(h = thick, r1= rad-0.75*thick, r2 = rad);
     translate([0,0,-0.1])
-      cylinder(h=thick+0.2, r = center_piece_rad, $fn = 60);
+      cylinder(h=thick+0.2, r = center_piece_rad);
     for (i = [0 : 5]) {
       rotate(i*360/6, [0,0,1]) {
 	translate([skrue_dist, 0, -0.1])
-	  cylinder(h = thick+0.2, r=skrue_dia/2, $fn = 20);
+	  cylinder(h = thick+0.2, d=skrue_dia+hole_tolerance2);
 	translate([skrue_dist, 0, thick-1.2])
-	  cylinder(h = thick+0.2, r=skrue_dia/2+1.2, $fn = 20);
+	  cylinder(h = thick+0.2, d=skrue_head_dia+hole_tolerance3);
       }
     }
   }
@@ -74,8 +83,8 @@ module base(thick, rad) {
 module krave(h, thick) {
   translate([0,0,-h]) {
     difference() {
-      cylinder(h = h, r = spindle_radius/2+thick, $fn = 60);
-      cylinder(h = h, r = spindle_radius/2, $fn = 60);
+      cylinder(h = h, r = spindle_radius/2+thick);
+      cylinder(h = h, r = spindle_radius/2);
     }
   }
 }
@@ -121,9 +130,9 @@ module hexagon(d, h, center=true) {
 module mount_thingies() {
   my_colour("yellow") {
     translate([0, 37, -pcb_thick-11])
-      cylinder(h = 11+0.2, r=3.3/2+0.45, $fn = 20);
+      cylinder(h = 11+0.2, r=3.3/2+0.45);
     translate([0, -37-5, -pcb_thick-11])
-      cylinder(h = 11+0.2, r=3.3/2+0.45, $fn = 20);
+      cylinder(h = 11+0.2, r=3.3/2+0.45);
   }
   my_colour("blue") {
     translate([0, 37, -0.8-6+0.1])
@@ -140,7 +149,7 @@ module sides_restrict() {
   sides_transform() {
     difference() {
       scale([1,squash,1])
-        cylinder(r=axis_dia/2, h=axis_height, center=false, $fn=120);
+        cylinder(r=axis_dia/2, h=axis_height, center=false);
       led_coords() {
         translate([0, 0, 100-pcb_thick]) {
           cube([200, 200, 200], center=true);
@@ -148,9 +157,9 @@ module sides_restrict() {
       }
       led_coords() {
         translate([0, 37, -pcb_thick-12])
-          cylinder(h = 24, r=3/2, $fn = 20);
+          cylinder(h = 24, r=3/2);
         translate([0, -37-5, -pcb_thick-12])
-          cylinder(h = 24, r=3/2, $fn = 20);
+          cylinder(h = 24, r=3/2);
         if (mount_opt1) {
           translate([0, 37+10, -pcb_thick-1.5-nut_thick/2])
             cube([nut_wide, nut_wide+20, nut_thick], center=true);
@@ -179,7 +188,7 @@ module sides() {
 	sides_restrict();
 	sides_transform()
 	  scale([1, (squash*(axis_dia/2)-sides_thick)/((axis_dia/2)-sides_thick), 1])
-	    cylinder(r=axis_dia/2-sides_thick, h=axis_height*2, center=false, $fn=120);
+	    cylinder(r=axis_dia/2-sides_thick, h=axis_height*2, center=false);
       }
       intersection() {
 	sides_restrict();
@@ -188,7 +197,7 @@ module sides() {
 	    cube([axis_dia, axis_dia, base_thick2], center=true);
       }
     }
-    battery(35, 60, 11);
+    battery(30.7, 52, 11);
   }
 }
 
@@ -238,9 +247,9 @@ module spindle_mount() {
 	sides();
     }
     translate([22.5, 0, 0])
-      cylinder(r=1.5+0.2, h=100, center=true, $fn=20);
+      cylinder(r=1.5+0.2, h=100, center=true);
     translate([-24, 0, 0])
-      cylinder(r=1.5+0.2, h=100, center=true, $fn=20);
+      cylinder(r=1.5+0.2, h=100, center=true);
   }
 
   if (enable_mount_thingies) {
