@@ -6,6 +6,7 @@ enable_mount_thingies = false;
 mount_opt1 = false;
 mount_opt2 = false;
 mount_opt3 = true;
+with_colour = false;
 
 spindle_radius = 25;
 squash = 0.9;
@@ -28,11 +29,23 @@ led_thick=0.25;
 led_protude=0.62;
 led_dot_offset=led_thick+led_protude*0.2;
 
+module my_colour(col) {
+  if (with_colour) {
+    color(col)
+      children();
+  } else {
+    children();
+  }
+}
+
+
 module battery(bat_x, bat_y, bat_thick) {
+  eps = 0.003152;
+  eps2 = 0.001;
   translate([0, 0, base_thick]) {
-    color("cyan")
-    translate([0,0,bat_thick/2])
-      linear_extrude(height = bat_thick, center = true) {
+    my_colour("cyan")
+    translate([0,0,(bat_thick+eps)/2])
+      linear_extrude(height = bat_thick+eps+eps2, center = true) {
         polygon(points = [[-bat_x/2,-bat_y/2], [bat_x/2,-bat_y/2],
                           [bat_x/2,bat_y/2], [-bat_x/2,bat_y/2]]);
       }
@@ -69,7 +82,7 @@ module krave(h, thick) {
 
 
 module pcb(thick) {
-  color("DarkSlateGray", 0.3) {
+  my_colour("DarkSlateGray", 0.3) {
     translate([0,0,axis_height/2+2])
       rotate([0, pcb_angle, 0])
       rotate([0, 0, 90])
@@ -97,13 +110,13 @@ module hexagon(d, h, center=true) {
 
 
 module mount_thingies() {
-  color("yellow") {
+  my_colour("yellow") {
     translate([0, 37, -pcb_thick-11])
       cylinder(h = 11+0.2, r=3.3/2+0.45, $fn = 20);
     translate([0, -37-5, -pcb_thick-11])
       cylinder(h = 11+0.2, r=3.3/2+0.45, $fn = 20);
   }
-  color("blue") {
+  my_colour("blue") {
     translate([0, 37, -0.8-6+0.1])
       hexagon(d=5.1+0.1, h=6, center=false);
     translate([0, -37-5, -0.8-6+0.1])
@@ -155,7 +168,7 @@ module sides_restrict() {
 
 module sides() {
   difference() {
-    color("Crimson", 0.7) {
+    my_colour("Crimson", 0.7) {
       difference() {
 	sides_restrict();
 	sides_transform()
@@ -202,14 +215,14 @@ module spindle_mount() {
   }
 
   if (enable_supports) {
-    color("darkgreen") {
+    my_colour("darkgreen") {
       highsupport();
       lowsupport();
     }
   }
 
   if (enable_pcb) {
-    pcb(pcb_thick);
+    %pcb(pcb_thick);
   }
 
   difference() {
@@ -240,6 +253,7 @@ intersection() {
   translate([0,0,-axis_height/2]) {
     spindle_mount();
   }
+  //translate([-500,0,-500])cube([1000,1000,1000], center=false);
   // Test prints:
   //translate([19,-15,-40]) cube([40,30,40]);
   //translate([-60,-15,10]) cube([40,30,40]);
