@@ -104,6 +104,15 @@ module sides_transform() {
 }
 
 
+module led_coords() {
+  translate([0, 0, axis_height/2-led_dot_offset]) {
+    rotate([pcb_angle, 0, 0]) {
+      children();
+    }
+  }
+}
+
+
 module hexagon(d, h, center=true) {
   cylinder(r=d/2*(2/sqrt(3)), h=h, center=center, $fn=6);
 }
@@ -132,34 +141,31 @@ module sides_restrict() {
     difference() {
       scale([1,squash,1])
         cylinder(r=axis_dia/2, h=axis_height, center=false, $fn=120);
-      translate([0, 0, axis_height/2-led_dot_offset])
-	rotate([pcb_angle, 0, 0]) {
-	  translate([0, 0, 100-pcb_thick]) {
-	    cube([200, 200, 200], center=true);
-          }
+      led_coords() {
+        translate([0, 0, 100-pcb_thick]) {
+          cube([200, 200, 200], center=true);
         }
-      translate([0, 0, axis_height/2-led_dot_offset]) {
-	rotate([pcb_angle, 0, 0]) {
-	  translate([0, 37, -pcb_thick-12])
-	    cylinder(h = 24, r=3/2, $fn = 20);
-	  translate([0, -37-5, -pcb_thick-12])
-	    cylinder(h = 24, r=3/2, $fn = 20);
-          if (mount_opt1) {
-	    translate([0, 37+10, -pcb_thick-1.5-nut_thick/2])
-	      cube([nut_wide, nut_wide+20, nut_thick], center=true);
-	    translate([0, -37-5-10, -pcb_thick-1.5-nut_thick/2])
-	      cube([nut_wide, nut_wide+20, nut_thick], center=true);
- 	  }
-	  if (mount_opt2) {
-            translate([0, 37, -0.8-3])
-              hexagon(d=5.5+0.2, h=3+0.5, center=false);
-            translate([0, -37-5, -0.8-3])
-              hexagon(d=5.5+0.2, h=3+0.5, center=false);
-	  }
-	  if (mount_opt3) {
-	    mount_thingies();
-	  }
-	}
+      }
+      led_coords() {
+        translate([0, 37, -pcb_thick-12])
+          cylinder(h = 24, r=3/2, $fn = 20);
+        translate([0, -37-5, -pcb_thick-12])
+          cylinder(h = 24, r=3/2, $fn = 20);
+        if (mount_opt1) {
+          translate([0, 37+10, -pcb_thick-1.5-nut_thick/2])
+            cube([nut_wide, nut_wide+20, nut_thick], center=true);
+          translate([0, -37-5-10, -pcb_thick-1.5-nut_thick/2])
+            cube([nut_wide, nut_wide+20, nut_thick], center=true);
+        }
+        if (mount_opt2) {
+          translate([0, 37, -0.8-3])
+            hexagon(d=5.5+0.2, h=3+0.5, center=false);
+          translate([0, -37-5, -0.8-3])
+            hexagon(d=5.5+0.2, h=3+0.5, center=false);
+        }
+        if (mount_opt3) {
+          mount_thingies();
+        }
       }
     }
   }
@@ -239,10 +245,8 @@ module spindle_mount() {
 
   if (enable_mount_thingies) {
     sides_transform() {
-      translate([0, 0, axis_height/2-led_dot_offset]) {
-	rotate([pcb_angle, 0, 0]) {
-	  mount_thingies();
-	}
+      led_coords() {
+        mount_thingies();
       }
     }
   }
