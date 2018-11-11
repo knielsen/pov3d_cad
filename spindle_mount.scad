@@ -148,11 +148,13 @@ module sides_restrict() {
 
   sides_transform() {
     difference() {
-      scale([1,squash,1])
-        cylinder(r=axis_dia/2, h=axis_height, center=false);
-      led_coords() {
-        translate([0, 0, 100-pcb_thick]) {
-          cube([200, 200, 200], center=true);
+      intersection() {
+        scale([1,squash,1])
+          cylinder(r=axis_dia/2, h=axis_height, center=false);
+        led_coords() {
+          translate([0, 0, -.5*axis_dia-pcb_thick]) {
+            cube([1.2*axis_dia, 1.2*axis_dia/tan(pcb_angle), axis_dia], center=true);
+          }
         }
       }
       led_coords() {
