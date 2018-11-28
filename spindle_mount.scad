@@ -184,13 +184,16 @@ module sides_restrict() {
 
 
 module sides() {
+  eps = 0.00108;
   difference() {
     my_colour("Crimson", 0.7) {
       difference() {
 	sides_restrict();
-	sides_transform()
+	sides_transform() {
 	  scale([1, (squash*(axis_dia/2)-sides_thick)/((axis_dia/2)-sides_thick), 1])
-	    cylinder(r=axis_dia/2-sides_thick, h=axis_height*2, center=false);
+            translate([0, 0, -eps])
+            cylinder(r=axis_dia/2-sides_thick, h=axis_height*2+2*eps, center=false);
+        }
       }
       intersection() {
 	sides_restrict();
