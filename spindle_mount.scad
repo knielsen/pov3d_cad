@@ -177,6 +177,8 @@ module sides_restrict() {
         if (mount_opt3) {
           mount_thingies();
         }
+        translate([-.5*axis_dia*cos(atan2(22,33)), .5*axis_dia*sin(atan2(22,33)), 0])
+          cylinder(d=20, h=2*3.2, center=true);
       }
     }
   }
