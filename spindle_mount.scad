@@ -20,8 +20,8 @@ krave_high = 8;
 krave_thick = 2.5;
 skrue_dia = 2;
 skrue_head_dia = 4;
-skrue_dist = 18.5/2;
-center_piece_rad = 5.5+0.3;
+skrue_dist = .5*20.35;
+center_piece_rad = .5*14.5+0.075;
 pcb_angle=37.5;
 pcb_thick = 0.8;
 sides_thick=1.0;
@@ -29,6 +29,14 @@ sides_thick=1.0;
 led_thick=0.25;
 led_protude=0.62;
 led_dot_offset=led_thick+led_protude*0.2;
+
+mount_hole_top_pos = 100-64.65;
+mount_hole_bot_pos = 43.65;
+
+mount_thingy_length = 12.1;
+mount_thingy_cyl_dia = 3.0;
+mount_thingy_hex_height = 6.0;
+mount_thingy_hex_dia = 5.0;
 
 hole_tolerance1 = 0.05;
 hole_tolerance2 = 0.1;
@@ -257,9 +265,9 @@ module spindle_mount() {
 	sides();
     }
     translate([22.5, 0, 0])
-      cylinder(r=1.5+0.2, h=100, center=true);
+      cylinder(r=.5*4+0.1, h=100, center=true);
     translate([-24, 0, 0])
-      cylinder(r=1.5+0.2, h=100, center=true);
+      cylinder(r=.5*4+0.1, h=100, center=true);
   }
 
   if (enable_mount_thingies) {
