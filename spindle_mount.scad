@@ -3,9 +3,6 @@ enable_pcb = false;
 enable_supports = true;
 enable_sides = true;
 enable_mount_thingies = false;
-mount_opt1 = false;
-mount_opt2 = false;
-mount_opt3 = true;
 with_colour = false;
 
 spindle_radius = 25;
@@ -24,6 +21,10 @@ skrue_dist = .5*20.35;
 center_piece_rad = .5*14.5+0.075;
 pcb_angle=37.5;
 pcb_thick = 0.8;
+// Estimate of the height from the PCB at which the active light-emitting
+// substrate of the LEDs sit. This is used to adjust the PCB location so that
+// the light-emitting locations become centered correctly around the spin-axis
+led_active_height = 0.2;
 sides_thick=1.0;
 
 led_thick=0.25;
@@ -37,8 +38,10 @@ mount_thingy_length = 12.1;
 mount_thingy_cyl_dia = 3.0;
 mount_thingy_hex_height = 6.0;
 mount_thingy_hex_dia = 5.0;
+// Let top of hex standoffs sit a bit below the PCB surface to ensure a tight fit.
+mount_thingy_lower = 2.25;
 
-hole_tolerance1 = 0.05;
+hole_tolerance1 = 0.075;
 hole_tolerance2 = 0.1;
 hole_tolerance3 = 0.4;
 // Fine subdivisions, for production run
@@ -121,12 +124,23 @@ module sides_transform() {
 }
 
 
+// Switch to coordinates for stuff that needs to be positioned relative to the
+// LEDs. Should be used inside a sides_transform().
+//
+// The coordinates are rotated to be in the plane of the back side of the PCB,
+// with X pointing to the right, towards the LED side, and Z upwards through
+// the top surface of the PCB.
+//
+// The origin coincides with the center of the PCB's back side, and is shifted
+// so that the active spots of the LEDs (led_active_height above the PCB's
+// surface) sweep out cylinders centered of the axis of rotation of the
+// spindle_mount.
 module led_coords() {
-  translate([0, 0, axis_height/2-led_dot_offset]) {
-    rotate([pcb_angle, 0, 0]) {
-      children();
+  translate([0, 0, .5*axis_height])
+    rotate([pcb_angle, 0, 0])
+    translate([0, (pcb_thick+led_active_height)*tan(pcb_angle), 0]) {
+    children();
     }
-  }
 }
 
 
@@ -136,19 +150,27 @@ module hexagon(d, h, center=true) {
 
 
 module mount_thingies() {
+  eps = 0.0013;
+  bot_pos = mount_thingy_length + mount_thingy_lower + 0.6;
+
   my_colour("yellow") {
-    translate([0, 37, -pcb_thick-11])
-      cylinder(h = 11+0.2, r=3.3/2+0.45);
-    translate([0, -37-5, -pcb_thick-11])
-      cylinder(h = 11+0.2, r=3.3/2+0.45);
+    translate([0, mount_hole_top_pos, -bot_pos])
+      cylinder(h = bot_pos+0.2, d=mount_thingy_cyl_dia+0.2);
+    translate([0, -mount_hole_bot_pos, -bot_pos])
+      cylinder(h = bot_pos+0.2, d=mount_thingy_cyl_dia+0.2);
   }
   my_colour("blue") {
-    translate([0, 37, -0.8-6+0.1])
-      hexagon(d=5.1+0.1, h=6, center=false);
-    translate([0, -37-5, -0.8-6+0.1])
-      hexagon(d=5.1+0.1, h=6, center=false);
+    translate([0, mount_hole_top_pos, -(mount_thingy_lower+mount_thingy_hex_height)])
+      hexagon(d=mount_thingy_hex_dia+hole_tolerance1,
+              h=mount_thingy_lower+mount_thingy_hex_height+eps,
+              center=false);
+    translate([0, -mount_hole_bot_pos, -(mount_thingy_lower+mount_thingy_hex_height)])
+      hexagon(d=mount_thingy_hex_dia+hole_tolerance1,
+              h=mount_thingy_lower+mount_thingy_hex_height+eps,
+              center=false);
   }
 }
+
 
 module sides_restrict() {
   nut_thick=1.5;
@@ -160,31 +182,14 @@ module sides_restrict() {
         scale([1,squash,1])
           cylinder(r=axis_dia/2, h=axis_height, center=false);
         led_coords() {
-          translate([0, 0, -.5*axis_dia-pcb_thick]) {
+          translate([0, 0, -.5*axis_dia]) {
             cube([1.2*axis_dia, 1.2*axis_dia/tan(pcb_angle), axis_dia], center=true);
           }
         }
       }
       led_coords() {
-        translate([0, 37, -pcb_thick-12])
-          cylinder(h = 24, r=3/2);
-        translate([0, -37-5, -pcb_thick-12])
-          cylinder(h = 24, r=3/2);
-        if (mount_opt1) {
-          translate([0, 37+10, -pcb_thick-1.5-nut_thick/2])
-            cube([nut_wide, nut_wide+20, nut_thick], center=true);
-          translate([0, -37-5-10, -pcb_thick-1.5-nut_thick/2])
-            cube([nut_wide, nut_wide+20, nut_thick], center=true);
-        }
-        if (mount_opt2) {
-          translate([0, 37, -0.8-3])
-            hexagon(d=5.5+0.2, h=3+0.5, center=false);
-          translate([0, -37-5, -0.8-3])
-            hexagon(d=5.5+0.2, h=3+0.5, center=false);
-        }
-        if (mount_opt3) {
-          mount_thingies();
-        }
+        mount_thingies();
+        // Cutout for voltage regulator on PCB.
         translate([-.5*axis_dia*cos(atan2(22,33)), .5*axis_dia*sin(atan2(22,33)), 0])
           cylinder(d=20, h=2*3.2, center=true);
       }
@@ -218,8 +223,8 @@ module sides() {
 
 
 module highsupport() {
-  thick=8.2;
-  width=10;
+  thick=11.2;
+  width=8.2;
   extra=20;
   intersection() {
     sides_transform() led_coords() {
@@ -264,10 +269,15 @@ module spindle_mount() {
       if (enable_sides)
 	sides();
     }
-    translate([22.5, 0, 0])
+    translate([21.5, 0, 0])
       cylinder(r=.5*4+0.1, h=100, center=true);
     translate([-24, 0, 0])
       cylinder(r=.5*4+0.1, h=100, center=true);
+    sides_transform() {
+      led_coords() {
+        mount_thingies();
+      }
+    }
   }
 
   if (enable_mount_thingies) {
