@@ -210,9 +210,12 @@ module sides() {
 module highsupport() {
   thick=8.2;
   width=10;
+  extra=20;
   intersection() {
-    translate([-(axis_dia*squash/2-thick/2), 0, axis_height/2])
-      cube([thick, width, axis_height], center=true);
+    sides_transform() led_coords() {
+      translate([0, 37+.5*extra, 0])
+      cube([width, thick+extra, 100], center=true);
+    }
     sides_restrict();
   }
 }
