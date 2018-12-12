@@ -39,7 +39,7 @@ mount_thingy_cyl_dia = 3.0;
 mount_thingy_hex_height = 6.0;
 mount_thingy_hex_dia = 5.0;
 // Let top of hex standoffs sit a bit below the PCB surface to ensure a tight fit.
-mount_thingy_lower = 2.25;
+mount_thingy_lower = 2.25 - 1.0;
 
 hole_tolerance1 = 0.075;
 hole_tolerance2 = 0.1;
