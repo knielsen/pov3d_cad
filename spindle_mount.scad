@@ -1,15 +1,24 @@
 enable_krave = false;
-enable_pcb = false;
 enable_supports = true;
 enable_sides = true;
-enable_mount_thingies = false;
 with_colour = false;
+
+// Options for turning various auxillary parts on or off.
+//
+// 0 means diabled; 1 means enabled (in transparance).
+// 2 means omit all other parts, for exporting specific parts as STL
+// separately.
+enable_pcb = 0;
+enable_weights = 1;
+enable_weight_fasteners = 1;
+enable_mount_thingies = 1;
+
 
 spindle_radius = 25;
 squash = 0.9;
 
 base_thick = 2.5;
-base_thick2 = 7.5;
+base_thick2 = 4;
 base_radius = 40;
 axis_height = 69;
 axis_dia = 80;
@@ -18,14 +27,30 @@ krave_thick = 2.5;
 skrue_dia = 2;
 skrue_head_dia = 4;
 skrue_dist = .5*20.35;
-center_piece_rad = .5*14.5+0.075;
+center_piece_rad = .5*14.5+0.125;
 pcb_angle=37.5;
 pcb_thick = 0.8;
+bat_wide = 30.7;
+bat_long = 52;
+bat_thick = 11;
+bat_edge_height = 10.0;
+bat_edge_thick = 1.2;
+// Raise the bottom of battery cutout to make room for motor spindle.
+bat_raise = 1.5;
 // Estimate of the height from the PCB at which the active light-emitting
 // substrate of the LEDs sit. This is used to adjust the PCB location so that
 // the light-emitting locations become centered correctly around the spin-axis
 led_active_height = 0.2;
 sides_thick=1.0;
+
+backweight_screw_x = -27;
+frontweight_screw_x = 21.5;
+// Thickness of counter-weights.
+weight_plate_thick = 2;
+backweight_count = 3;
+frontweight_count = 4;
+backweight_thick = backweight_count*weight_plate_thick;
+frontweight_thick = frontweight_count*weight_plate_thick;
 
 led_thick=0.25;
 led_protude=0.62;
@@ -41,7 +66,7 @@ mount_thingy_hex_dia = 5.0;
 // Let top of hex standoffs sit a bit below the PCB surface to ensure a tight fit.
 mount_thingy_lower = 2.25 - 1.0;
 
-hole_tolerance1 = 0.075;
+hole_tolerance1 = 0.05;
 hole_tolerance2 = 0.1;
 hole_tolerance3 = 0.4;
 // Fine subdivisions, for production run
@@ -59,10 +84,54 @@ module my_colour(col) {
 }
 
 
+module cond_part(condition) {
+  if (condition == 1) {
+    %children();
+  } else if (condition == 2) {
+    !children();
+  }
+}
+
+
+// Hex nut in x-y plane, origin at bottom center. The outer width is the
+// distance between two parallel sides.
+module generic_hex_nut(thick, outer_width, inner_dia) {
+  eps=0.00972;
+  difference() {
+    cylinder(h=thick, d=outer_width/cos(30), center=false, $fn=6);
+    translate([0, 0, -eps]) cylinder(h=thick+2*eps, d=inner_dia, center=false);
+  }
+}
+
+
+// Screw along z-axis, origin on center axis at the transition from head to
+// main, tip of screw on positive end of z.
+module generic_screw(main_length, main_dia, head_thick, head_dia) {
+  eps=0.01172;
+  translate([0, 0, -eps]) cylinder(h=main_length+eps, d=main_dia+eps, center=false);
+  translate([0, 0, -head_thick]) cylinder(h=head_thick, d=head_dia, center=false);
+}
+
+
+module m3_screw() {
+  generic_screw(main_length=6, main_dia=3, head_thick=2, head_dia=5.8);
+}
+
+
+module m4_hex_nut() {
+  generic_hex_nut(thick=3.1, outer_width=6.85, inner_dia=4.0);
+}
+
+
+module m4_screw_20mm() {
+  generic_screw(main_length=20, main_dia=4, head_thick=2.5, head_dia=7);
+}
+
+
 module battery(bat_x, bat_y, bat_thick) {
   eps = 0.003152;
   eps2 = 0.001;
-  translate([0, 0, base_thick]) {
+  translate([0, 0, base_thick+bat_raise]) {
     my_colour("cyan")
     translate([0,0,(bat_thick+eps)/2])
       linear_extrude(height = bat_thick+eps+eps2, center = true) {
@@ -73,20 +142,51 @@ module battery(bat_x, bat_y, bat_thick) {
 }
 
 
+module spindle_mount_subtract(thick) {
+  thick2 = thick + bat_raise;
+  translate([0,0,-0.1])
+    cylinder(h=thick2+0.2, r = center_piece_rad);
+  for (i = [0 : 5]) {
+    rotate(i*360/6, [0,0,1]) {
+      translate([skrue_dist, 0, -0.1])
+        cylinder(h = thick2+0.2, d=skrue_dia+hole_tolerance2);
+      translate([skrue_dist, 0, thick-1.2])
+        cylinder(h = thick2+0.2, d=skrue_head_dia+hole_tolerance3);
+    }
+  }
+}
+
+
+module weight_fastener_holes() {
+  translate([frontweight_screw_x, 0, 0])
+    cylinder(r=.5*4+0.1, h=100, center=true);
+  translate([backweight_screw_x, 0, 0])
+    cylinder(r=.5*4+0.1, h=100, center=true);
+}
+
+
+module weight_fasteners() {
+  translate([backweight_screw_x, 0, 0]) {
+    translate([0, 0, -backweight_thick])
+      m4_screw_20mm();
+    translate([0, 0, base_thick])
+      m4_hex_nut();
+  }
+  translate([frontweight_screw_x, 0, 0]) {
+    translate([0, 0, base_thick + base_thick2 + frontweight_thick])
+      rotate([180, 0, 0])
+      m4_screw_20mm();
+    rotate([180, 0, 0])
+      m4_hex_nut();
+  }
+}
+
+
 module base(thick, rad) {
   difference() {
     scale([squash,1,1])
       cylinder(h = thick, r1= rad-0.75*thick, r2 = rad);
-    translate([0,0,-0.1])
-      cylinder(h=thick+0.2, r = center_piece_rad);
-    for (i = [0 : 5]) {
-      rotate(i*360/6, [0,0,1]) {
-	translate([skrue_dist, 0, -0.1])
-	  cylinder(h = thick+0.2, d=skrue_dia+hole_tolerance2);
-	translate([skrue_dist, 0, thick-1.2])
-	  cylinder(h = thick+0.2, d=skrue_head_dia+hole_tolerance3);
-      }
-    }
+    spindle_mount_subtract(thick);
   }
 }
 
@@ -103,16 +203,17 @@ module krave(h, thick) {
 
 module pcb(thick) {
   my_colour("DarkSlateGray", 0.3) {
-    translate([0,0,axis_height/2+2])
-      rotate([0, pcb_angle, 0])
-      rotate([0, 0, 90])
+    sides_transform() led_coords() {
+      translate([0, 0, .5*thick]) {
 	linear_extrude(height=thick, center=true)
 	  polygon(points = [[49,5.5], [48,16], [45,25], [33.5,34.5],
 			    [9,34.5], [5,34.5+8], [-5,34.5+8], [-9,34.5],
 			    [-33.5,34.5], [-45,25], [-48,16], [-49,5.5],
 			    [-49,-5.5], [-48,-16], [-45,-25], [-33.5,-34.5],
-			    [-9,-34.5], [-5,-(34.5+11)], [5,-(34.5+11)], [9,-34.5],
+			    [-12.5,-34.5], [-5,-49.5], [5,-49.5], [12.5,-34.5],
 			    [33.5,-34.5], [45,-25], [48,-16], [49,-5.5]]);
+      }
+    }
   }
 }
 
@@ -149,7 +250,7 @@ module hexagon(d, h, center=true) {
 }
 
 
-module mount_thingies() {
+module mount_thingies_subtract() {
   eps = 0.0013;
   bot_pos = mount_thingy_length + mount_thingy_lower + 0.6;
 
@@ -172,6 +273,20 @@ module mount_thingies() {
 }
 
 
+module mount_thingies(center_y) {
+  cyl_base = mount_thingy_length + mount_thingy_lower;
+  hex_base = mount_thingy_hex_height + mount_thingy_lower;
+
+  translate([0, center_y, -cyl_base])
+    cylinder(h = mount_thingy_length, r=mount_thingy_cyl_dia/2);
+  translate([0, center_y, -hex_base])
+    hexagon(d=mount_thingy_hex_dia, h=mount_thingy_hex_height, center=false);
+  translate([0, center_y, pcb_thick])
+    rotate([180, 0, 0])
+    m3_screw();
+}
+
+
 module sides_restrict() {
   nut_thick=1.5;
   nut_wide=6;
@@ -188,10 +303,10 @@ module sides_restrict() {
         }
       }
       led_coords() {
-        mount_thingies();
+        mount_thingies_subtract();
         // Cutout for voltage regulator on PCB.
-        translate([-.5*axis_dia*cos(atan2(22,33)), .5*axis_dia*sin(atan2(22,33)), 0])
-          cylinder(d=20, h=2*3.2, center=true);
+        translate([-.5*axis_dia*cos(atan2(20.5,33)), .5*axis_dia*sin(atan2(20.5,33)), 0])
+          cylinder(d=17, h=2*2.7, center=true);
       }
     }
   }
@@ -216,8 +331,13 @@ module sides() {
 	  translate([0,-20,base_thick2/2])
 	    cube([axis_dia, axis_dia, base_thick2], center=true);
       }
+      translate([0, 0, eps+base_thick+0.5*bat_edge_height])
+        cube([bat_wide+2*bat_edge_thick,
+              bat_long+2*bat_edge_thick,
+              bat_edge_height], center=true);
     }
-    battery(30.7, 52, 11);
+    battery(bat_wide, bat_long, bat_thick);
+    spindle_mount_subtract(base_thick);
   }
 }
 
@@ -247,6 +367,34 @@ module lowsupport() {
 }
 
 
+module backweigth() {
+  wide = 16;
+  long = 48;
+
+  intersection() {
+    translate([-(squash*(base_radius-.75*base_thick)-.5*wide), 0, -.5*backweight_thick])
+      cube([wide, long, backweight_thick], center=true);
+    scale([squash, 1, 1])
+      cylinder(r=base_radius-.75*base_thick, h=4*axis_height, center=true);
+  }
+}
+
+
+module frontweigth() {
+  wide = 11;
+  long = 150;
+  dist = 0.3;
+
+  intersection() {
+    translate([.5*bat_wide+bat_edge_thick+dist+.5*wide, 0,
+               base_thick+base_thick2+.5*frontweight_thick])
+      cube([wide, long, frontweight_thick], center=true);
+    scale([squash, 1, 1])
+      cylinder(r=.5*axis_dia-sides_thick-dist, h=4*axis_height, center=true);
+  }
+}
+
+
 module spindle_mount() {
   if (enable_krave) {
     krave (krave_high, krave_thick);
@@ -259,31 +407,16 @@ module spindle_mount() {
     }
   }
 
-  if (enable_pcb) {
-    %pcb(pcb_thick);
-  }
-
   difference() {
     union() {
       base(base_thick, base_radius);
       if (enable_sides)
 	sides();
     }
-    translate([21.5, 0, 0])
-      cylinder(r=.5*4+0.1, h=100, center=true);
-    translate([-24, 0, 0])
-      cylinder(r=.5*4+0.1, h=100, center=true);
+    weight_fastener_holes();
     sides_transform() {
       led_coords() {
-        mount_thingies();
-      }
-    }
-  }
-
-  if (enable_mount_thingies) {
-    sides_transform() {
-      led_coords() {
-        mount_thingies();
+        mount_thingies_subtract();
       }
     }
   }
@@ -291,11 +424,54 @@ module spindle_mount() {
 
 
 intersection() {
-  translate([0,0,-axis_height/2]) {
-    spindle_mount();
+  union() {
+    translate([0,0,-axis_height/2]) {
+      spindle_mount();
+    }
+
+    cond_part(enable_pcb) {
+      translate([0,0,-axis_height/2]) {
+        pcb(pcb_thick);
+      }
+    }
+
+    cond_part(enable_weights) {
+      translate([0,0,-axis_height/2]) {
+        difference() {
+          union() {
+            backweigth();
+            frontweigth();
+          }
+          weight_fastener_holes();
+        }
+      }
+    }
+
+    cond_part(enable_weight_fasteners) {
+      translate([0,0,-axis_height/2]) {
+        weight_fasteners();
+      }
+    }
+
+    cond_part(enable_mount_thingies) {
+      translate([0,0,-axis_height/2]) {
+        sides_transform() {
+          led_coords() {
+            mount_thingies(mount_hole_top_pos);
+            mount_thingies(-mount_hole_bot_pos);
+          }
+        }
+      }
+    }
   }
+
   //translate([-500,0,-500])cube([1000,1000,1000], center=false);
   // Test prints:
   //translate([19,-15,-40]) cube([40,30,40]);
   //translate([-60,-15,10]) cube([40,30,40]);
+  //difference() {
+  //  translate([-17, -25, 14])
+  //    cube([50, 50, 15], center=true);
+  //  cube([axis_dia*squash-2*sides_thick, 8.4, 200], center=true);
+  //}
 }
