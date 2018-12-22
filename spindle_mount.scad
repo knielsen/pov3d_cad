@@ -8,7 +8,7 @@ with_colour = false;
 // 0 means diabled; 1 means enabled (in transparance).
 // 2 means omit all other parts, for exporting specific parts as STL
 // separately.
-enable_pcb = 0;
+enable_pcb = 1;
 enable_weights = 1;
 enable_weight_fasteners = 1;
 enable_mount_thingies = 1;
@@ -18,10 +18,12 @@ spindle_radius = 25;
 squash = 0.9;
 
 base_thick = 2.5;
-base_thick2 = 4;
+base_thick2 = 2.5;
 base_radius = 40;
 axis_height = 69;
 axis_dia = 80;
+lowsupport_thick = 8;
+lowsupport_width = 10;
 krave_high = 8;
 krave_thick = 2.5;
 skrue_dia = 2;
@@ -36,7 +38,7 @@ bat_thick = 11;
 bat_edge_height = 10.0;
 bat_edge_thick = 1.2;
 // Raise the bottom of battery cutout to make room for motor spindle.
-bat_raise = 1.5;
+bat_raise = 2;
 // Estimate of the height from the PCB at which the active light-emitting
 // substrate of the LEDs sit. This is used to adjust the PCB location so that
 // the light-emitting locations become centered correctly around the spin-axis
@@ -357,19 +359,17 @@ module highsupport() {
 
 
 module lowsupport() {
-  thick=8;
-  width=10;
   intersection() {
-    translate([axis_dia*squash/2-thick/2, 0, axis_height/2])
-      cube([thick, width, axis_height], center=true);
+    translate([axis_dia*squash/2-lowsupport_thick/2, 0, axis_height/2])
+      cube([lowsupport_thick, lowsupport_width, axis_height], center=true);
     sides_restrict();
   }
 }
 
 
 module backweigth() {
-  wide = 16;
-  long = 48;
+  wide = 18;
+  long = 53;
 
   intersection() {
     translate([-(squash*(base_radius-.75*base_thick)-.5*wide), 0, -.5*backweight_thick])
@@ -381,14 +381,19 @@ module backweigth() {
 
 
 module frontweigth() {
-  wide = 11;
+  wide = axis_dia;
   long = 150;
   dist = 0.3;
+  pcb_clear = 22;
 
   intersection() {
-    translate([.5*bat_wide+bat_edge_thick+dist+.5*wide, 0,
-               base_thick+base_thick2+.5*frontweight_thick])
-      cube([wide, long, frontweight_thick], center=true);
+    difference() {
+      translate([.5*bat_wide+bat_edge_thick+dist+.5*wide, 0,
+                 base_thick+base_thick2+.5*frontweight_thick])
+        cube([wide, long, frontweight_thick], center=true);
+      translate([axis_dia*squash/2-lowsupport_thick/2, 0, axis_height/2])
+        cube([lowsupport_thick+2*dist, pcb_clear, axis_height], center=true);
+    }
     scale([squash, 1, 1])
       cylinder(r=.5*axis_dia-sides_thick-dist, h=4*axis_height, center=true);
   }
