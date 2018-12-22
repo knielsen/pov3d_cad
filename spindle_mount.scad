@@ -2,6 +2,8 @@ enable_krave = false;
 enable_supports = true;
 enable_sides = true;
 with_colour = false;
+// Can be set externally to generate 2D for CNC-cutting the weights.
+do_weights_2d = false;
 
 // Options for turning various auxillary parts on or off.
 //
@@ -428,7 +430,7 @@ module spindle_mount() {
 }
 
 
-intersection() {
+module spindle_mount_with_extra_models() {
   union() {
     translate([0,0,-axis_height/2]) {
       spindle_mount();
@@ -469,6 +471,34 @@ intersection() {
       }
     }
   }
+}
+
+if (do_weights_2d) {
+  for (i = [0 : (backweight_count-1)]) {
+    projection(cut=true) {
+      translate([i*35, 0, (.5+i)*weight_plate_thick]) {
+        difference() {
+          backweigth();
+          weight_fastener_holes();
+        }
+      }
+    }
+  }
+  for (i = [0 : (frontweight_count-1)]) {
+    projection(cut=true) {
+      translate([(i-frontweight_count/2)*42,
+                 -100,
+                 -(base_thick+base_thick2) - (.5+i)*weight_plate_thick]) {
+        difference() {
+          frontweigth();
+          weight_fastener_holes();
+        }
+      }
+    }
+  }
+} else {
+  intersection() {
+    spindle_mount_with_extra_models();
 
   //translate([-500,0,-500])cube([1000,1000,1000], center=false);
   // Test prints:
@@ -479,4 +509,5 @@ intersection() {
   //    cube([50, 50, 15], center=true);
   //  cube([axis_dia*squash-2*sides_thick, 8.4, 200], center=true);
   //}
+  }
 }
