@@ -386,7 +386,8 @@ module frontweigth() {
   wide = axis_dia;
   long = 150;
   dist = 0.3;
-  pcb_clear = 22;
+  pcb_clear = 20.9;
+  screw_clear = 0.8;
 
   intersection() {
     difference() {
@@ -394,7 +395,7 @@ module frontweigth() {
                  base_thick+base_thick2+.5*frontweight_thick])
         cube([wide, long, frontweight_thick], center=true);
       translate([axis_dia*squash/2-lowsupport_thick/2, 0, axis_height/2])
-        cube([lowsupport_thick+2*dist, pcb_clear, axis_height], center=true);
+        cube([lowsupport_thick+screw_clear+2*dist, pcb_clear, axis_height], center=true);
     }
     scale([squash, 1, 1])
       cylinder(r=.5*axis_dia-sides_thick-dist, h=4*axis_height, center=true);
