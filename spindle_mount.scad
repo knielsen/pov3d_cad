@@ -78,9 +78,9 @@ hole_tolerance3 = 0.4;
 // Coarse, but faster, subdivisions, for testing.
 $fa = 2; $fs = 0.3;
 
-module my_colour(col) {
+module my_colour(col, alpha=1.0) {
   if (with_colour) {
-    color(col)
+    color(col, alpha)
       children();
   } else {
     children();
