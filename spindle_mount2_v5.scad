@@ -26,9 +26,9 @@ $vpr = $vpd < 200 ? [83, 0, 114] : $vpr;
 $vpd = $vpd < 200 ? 400 : $vpd;
 
 // Fine subdivisions, for production run
-$fa = 1; $fs = 0.1;
+//$fa = 1; $fs = 0.1;
 // Coarse, but faster, subdivisions, for testing.
-//$fa = 2; $fs = 0.3;
+$fa = 2; $fs = 0.3;
 
 // Height of the filled-in bottom part of the base, where radius increases
 // with height.
@@ -743,13 +743,13 @@ module lowsupport() {
 
 module backweigth() {
   w_thick = backweight_thick;
-  w_wide = 44.75;
-  w_long = 25;
+  w_wide = 41.3;
+  w_long = 20;
   eps=0.00731;
 
   intersection() {
     difference() {
-      translate([-(ledtorus2_hub_d2/2 + 25 + w_long/2), 0, -w_thick/2])
+      translate([-(.5*base_lower_dia - .5*w_long), 0, -w_thick/2])
         cube([w_long, w_wide, w_thick], center=true);
       weight_fastener_holes();
     }
@@ -761,8 +761,7 @@ module backweigth() {
 module frontweigth() {
   w_thick = frontweight_thick;
   w_wide = 2*mount_center_x-lowsupport_breath-0.5;
-  w_long = 50;
-  w_x0 = 20;
+  w_x0 = 25.69;
   w_x1 = 30;
   w_x2 = 42-0.5;
   w_x2a = 48;
