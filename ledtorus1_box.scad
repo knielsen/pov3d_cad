@@ -1,8 +1,8 @@
-do_bottom = false;
-do_middle = false;
+do_bottom = true;
+do_middle = true;
 do_top = true;
-do_pcb = false;
-do_exploded = false;
+do_pcb = true;
+do_exploded = true;
 
 ps2_conn_ridge_width = 2.5;
 ps2_conn_ridge_length = 38.5;
@@ -190,7 +190,7 @@ module ps2_conn_support_low() {
 module ps2_conn_support_high() {
   eps = 0.0171;
   z_tolerance = 0;
-  fit_tolerance = 2*0.65;
+  fit_tolerance = 2*0.065;
   fit_tolerance_depth = 0.65;
   zsize = top_top-(ps2_conn_inner_low_zpos+.5*ps2_conn_ridge_height) - z_tolerance;
   xsize2 = conn_pin_xsize+2*top_side_thick; // middle
@@ -279,7 +279,9 @@ module top_part() {
   top_back_tolerance = 0.4;
   top_width = hd_width+2*box_side_thick;
   top_len = pcb_from_front+pcb_len+top_back_tolerance+top_side_thick;
-  hole_tolerance = 2*0.05;
+  hole_tolerance1 = 2*0.05;
+  hole_tolerance2 = 2*0.15;
+  front_tolerance = 0.1;
 
   ps2_conn_support_high();
   difference() {
@@ -295,7 +297,7 @@ module top_part() {
                middle_zpos + .5*cutout_zsize - eps]) {
       cube([cutout_xsize, cutout_left_ysize, cutout_zsize], center=true);
     }
-    cutout_right_ysize = pcb_left_cutout_ypos2 - pcb_left_cutout_ypos1;
+    cutout_right_ysize = pcb_right_cutout_ypos2 - pcb_right_cutout_ypos1;
     translate([+(.5*hd_width+box_side_thick-.5*box_side_thick),
                pcb_right_cutout_ypos1 + .5*cutout_right_ysize,
                middle_zpos + .5*cutout_zsize - eps]) {
@@ -318,10 +320,10 @@ module top_part() {
     }
   }
 
-  xsize2 = .5*(hd_width+2*box_side_thick-pcb_width);
+  xsize2 = .5*(hd_width+2*box_side_thick-pcb_width)-front_tolerance;
   ysize2 = conn_pin_ysize+2*top_side_thick;
   for (i = [-1:2:1]) {
-    translate([i*(.5*(hd_width+2*box_side_thick)-xsize2), .5*ysize2, middle_zpos+.5*top_height])
+    translate([i*.5*(hd_width+2*box_side_thick-xsize2), .5*ysize2, middle_zpos+.5*top_height])
       cube([xsize2, ysize2, top_height], center=true);
   }
 
@@ -340,9 +342,9 @@ module top_part() {
       }
     }
     translate([i*pcb_hole_xpos, pcb_hole_ypos2, pcb_top-pcb_thick])
-      cylinder(d=4.3-hole_tolerance, h=pcb_thick, center=false);
+      cylinder(d=4.3-hole_tolerance1, h=pcb_thick, center=false);
     translate([i*pcb_hole_xpos, pcb_hole_ypos2, middle_zpos-box_top_thick])
-      cylinder(d=4.0-hole_tolerance, h=top_height, center=false);
+      cylinder(d=4.0-hole_tolerance2, h=top_height, center=false);
   }
 }
 
