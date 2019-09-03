@@ -44,6 +44,10 @@ pcb_left_cutout_ypos1 = 17.5;
 pcb_left_cutout_ypos2 = 38;
 pcb_right_cutout_ypos1 = 25;
 pcb_right_cutout_ypos2 = 36;
+pcb_motor_cutout_xpos1 = 28.65 - .5*20;
+pcb_motor_cutout_xpos2 = 28.65 + .5*20;
+pcb_motor_cutout_ypos2 = pcb_from_front + pcb_len;
+pcb_motor_cutout_ypos1 = pcb_motor_cutout_ypos2 - 30;
 
 conn_pin_xsize = 3.2;
 conn_pin_ysize = 1.5;
@@ -91,6 +95,19 @@ module pcb() {
 }
 
 
+// Cutout for motor power leads.
+module motor_leads_cutout(zpos) {
+  eps = 0.009435;
+  cutout_xsize = pcb_motor_cutout_xpos2 - pcb_motor_cutout_xpos1;
+  cutout_ysize = pcb_motor_cutout_ypos2 - pcb_motor_cutout_ypos1;
+  translate([pcb_motor_cutout_xpos1+.5*cutout_xsize,
+             pcb_motor_cutout_ypos1+.5*cutout_ysize+eps,
+             zpos]) {
+    cube([cutout_xsize, cutout_ysize, 6*box_top_thick], center=true);
+  }
+}
+
+
 // Bottom part that wraps the HDD.
 // Origin is at the front of the box in Y, centered on X and at the base on Z.
 module box_base() {
@@ -111,6 +128,7 @@ module box_base() {
     }
     translate([0, box_extra+box_torus_front_dist, 0])
       cylinder(h=1000, d=box_torus_hole_d, center=true);
+    motor_leads_cutout(zpos=middle_zpos);
   }
 }
 
@@ -254,12 +272,17 @@ module middle_part() {
   ps2_conn_support_low();
   translate([0, 0, middle_zpos]) {
     // Bottom.
-    ysize = pcb_from_front + pcb_len;
-    translate([0, .5*ysize, .5*middle_thick])
-      cube([pcb_width, ysize, middle_thick], center=true);
-    ysize2 = ysize - (conn_pin_ysize+2*top_side_thick);
-    translate([0, ysize-.5*ysize2, .5*middle_thick])
-      cube([hd_width, ysize2, middle_thick], center=true);
+    difference() {
+      union() {
+        ysize = pcb_from_front + pcb_len;
+        translate([0, .5*ysize, .5*middle_thick])
+          cube([pcb_width, ysize, middle_thick], center=true);
+        ysize2 = ysize - (conn_pin_ysize+2*top_side_thick);
+        translate([0, ysize-.5*ysize2, .5*middle_thick])
+          cube([hd_width, ysize2, middle_thick], center=true);
+      }
+      motor_leads_cutout(zpos=0);
+    }
     // Stubs for mounting screws.
     for (i = [-1:2:1]) {
       hull() {
@@ -343,7 +366,7 @@ module top_part() {
     }
     translate([i*pcb_hole_xpos, pcb_hole_ypos2, pcb_top-pcb_thick])
       cylinder(d=4.3-hole_tolerance1, h=pcb_thick, center=false);
-    translate([i*pcb_hole_xpos, pcb_hole_ypos2, middle_zpos-box_top_thick])
+    translate([i*pcb_hole_xpos, pcb_hole_ypos2, middle_zpos-2*box_top_thick])
       cylinder(d=4.0-hole_tolerance2, h=top_height, center=false);
   }
 }
