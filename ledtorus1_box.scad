@@ -2,6 +2,7 @@ do_bottom = true;
 do_middle = true;
 do_top = true;
 do_pcb = true;
+do_hex_nut_supports = true;
 do_exploded = true;
 
 ps2_conn_ridge_width = 2.5;
@@ -44,8 +45,8 @@ pcb_left_cutout_ypos1 = 17.5;
 pcb_left_cutout_ypos2 = 38;
 pcb_right_cutout_ypos1 = 25;
 pcb_right_cutout_ypos2 = 36;
-pcb_motor_cutout_xpos1 = 28.65 - .5*20;
-pcb_motor_cutout_xpos2 = 28.65 + .5*20;
+pcb_motor_cutout_xpos1 = 20.5 - .5*20;
+pcb_motor_cutout_xpos2 = 20.5 + .5*20;
 pcb_motor_cutout_ypos2 = pcb_from_front + pcb_len;
 pcb_motor_cutout_ypos1 = pcb_motor_cutout_ypos2 - 30;
 
@@ -56,6 +57,7 @@ conn_pin_zsize = 2.5;
 mount_screw_len = 39;
 hexnut_hole_depth = top_top - (mount_screw_len - 5);
 stub_dia = 7;
+hexnut_slot_tolerance=2*0.25;
 
 // It seems to fit that the bottom inner ridge of the PS2 connector sits in
 // the middle of the PCB. With enough tiny slack that it should be possible
@@ -246,18 +248,36 @@ module ps2_conn_support_high() {
 
 module mounting_holes(do_front=true, do_back=true) {
   screw_tolerance=2*0.1;
-  hexnut_tolerance=2*0.25;
   h=2*box_base_height;
   for(i = [-1:2:1]) {
     if (do_front) {
       translate([i*pcb_hole_xpos, pcb_hole_ypos, -1]) {
         cylinder(d=4+screw_tolerance, h=h, center=false);
-        cylinder(d=7.8+hexnut_tolerance, h=1+hexnut_hole_depth, center=false, $fn=6);
+        cylinder(d=7.8+hexnut_slot_tolerance, h=1+hexnut_hole_depth, center=false, $fn=6);
       }
     }
     if (do_back) {
       translate([i*pcb_hole_xpos, pcb_hole_ypos2, -1])
         cylinder(d=4+screw_tolerance, h=h, center=false);
+    }
+  }
+}
+
+
+module hex_nut_supports() {
+  hole_tolerance = 0.4;
+  height_tolerance = 0.8;
+  height = 8.5 - height_tolerance;
+  screw_tolerance = 2*0.4;
+
+  for(i = [-1:2:1]) {
+    difference() {
+      translate([i*pcb_hole_xpos, pcb_hole_ypos, 0]) {
+        cylinder(d=7.8+hexnut_slot_tolerance-hole_tolerance, h=height, center=false, $fn=6);
+      }
+      translate([i*pcb_hole_xpos, pcb_hole_ypos, -1]) {
+        cylinder(d=4.0 + screw_tolerance, h=height+2*1, center=false);
+      }
     }
   }
 }
@@ -407,6 +427,12 @@ module assembly() {
       translate([0, pcb_from_front, pcb_top - pcb_thick])
         %//color("black")
         pcb();
+    }
+  }
+
+  translate([0, 0, -2*exp_z]) {
+    if (do_hex_nut_supports) {
+      hex_nut_supports();
     }
   }
 }
