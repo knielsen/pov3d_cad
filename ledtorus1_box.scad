@@ -58,13 +58,16 @@ mount_screw_len = 39;
 hexnut_hole_depth = top_top - (mount_screw_len - 5);
 stub_dia = 7;
 hexnut_slot_tolerance=2*0.25;
+side_hole_z = 6.0;
+side_hole_y = [box_extra+hd_len+box_side_thick-119.3,
+               box_extra+hd_len+box_side_thick-18.0];
 
 // It seems to fit that the bottom inner ridge of the PS2 connector sits in
 // the middle of the PCB. With enough tiny slack that it should be possible
 // to solder the connectors while mounted in the frame/box for a perfect fit?
 ps2_conn_inner_low_zpos = pcb_top - .5*pcb_thick;
 
-$fa = 10;
+$fa = 5;
 $fs = 0.2;
 
 
@@ -113,8 +116,18 @@ module motor_leads_cutout(zpos) {
 // Bottom part that wraps the HDD.
 // Origin is at the front of the box in Y, centered on X and at the base on Z.
 module box_base() {
-  eps=0.00173;
+  eps=0.00673;
   height = box_base_height+box_top_thick;
+  side_hole_tolerance_z = 0.3;
+  side_hole_tolerance_y = 0.8 - side_hole_tolerance_z;
+  magnet_hole_tolerance = 0.15;
+  magnet_xpos = 31;
+  magnet_ypos = 93.8;
+  //magnet_xpos2 = -(.5*(hd_width+2*box_side_thick)-26.5;
+  //magnet_ypos2 = box_extra+hd_len+box_side_thick-21;
+  magnet_height = 10;
+  magnet_dia = 6;
+
   difference() {
     union() {
       difference() {
@@ -124,10 +137,28 @@ module box_base() {
                 height], center=true);
         translate([0, box_extra+.5*hd_len, .5*box_base_height-eps])
           cube([hd_width, hd_len, box_base_height], center=true);
+        for(i = [0:1]) {
+          hull() {
+            for(j = [-1:2:1]) {
+              translate([0, side_hole_y[i]+j*.5*side_hole_tolerance_y, side_hole_z]) {
+                rotate([0, 90, 0])
+                  cylinder(d=3+side_hole_tolerance_z,
+                           h=hd_width+2*box_side_thick+2*1,
+                           center=true);
+              }
+            }
+          }
+        }
       }
       translate([0, box_extra+box_torus_front_dist, height-2*box_top_thick])
         cylinder(h=2*box_top_thick, d=box_torus_hole_d+2*box_side_thick, center=false);
+      translate([magnet_xpos, magnet_ypos, height-box_top_thick])
+        rotate([180, 0, 0])
+        cylinder(d=magnet_dia+2*box_top_thick, h=magnet_height+box_top_thick, center=false);
     }
+    translate([magnet_xpos, magnet_ypos, height+2*eps])
+      rotate([180, 0, 0])
+      cylinder(d=magnet_dia+magnet_hole_tolerance, h=magnet_height, center=false);
     translate([0, box_extra+box_torus_front_dist, 0])
       cylinder(h=1000, d=box_torus_hole_d, center=true);
     motor_leads_cutout(zpos=middle_zpos);
