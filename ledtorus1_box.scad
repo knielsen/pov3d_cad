@@ -5,6 +5,8 @@ do_pcb = true;
 do_hex_nut_supports = true;
 do_exploded = true;
 
+with_solder_holes = false;
+
 ps2_conn_ridge_width = 2.5;
 ps2_conn_ridge_length = 38.5;
 ps2_conn_ridge_depth = 1.3;
@@ -333,6 +335,12 @@ module middle_part() {
           cube([hd_width, ysize2, middle_thick], center=true);
       }
       motor_leads_cutout(zpos=0);
+      if (with_solder_holes) {
+        for (i=[-1:2:1]) {
+          translate([i*21.5, 9, 0])
+            cube([39, 10, 10], center=true);
+        }
+      }
     }
     // Stubs for mounting screws.
     for (i = [-1:2:1]) {
