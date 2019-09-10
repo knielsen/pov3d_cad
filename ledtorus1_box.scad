@@ -127,6 +127,17 @@ module box_base() {
   magnet_ypos = 93.8;
   //magnet_xpos2 = -(.5*(hd_width+2*box_side_thick)-26.5;
   //magnet_ypos2 = box_extra+hd_len+box_side_thick-21;
+  magnet_xpos2 = -16.6;
+  // Compute magnet2 pos with same distance to torus-center as magnet1.
+  t_cx = 0;
+  t_cy = box_extra+box_torus_front_dist;
+  magnet_ypos2 = t_cy -
+    sqrt((magnet_ypos-t_cy)*(magnet_ypos-t_cy) +
+         (magnet_xpos-t_cx)*(magnet_xpos-t_cx) -
+         (magnet_xpos2-t_cx)*(magnet_xpos2-t_cx));
+  mag_x = [magnet_xpos, magnet_xpos2];
+  mag_y = [magnet_ypos, magnet_ypos2];
+
   magnet_height = 10;
   magnet_dia = 6;
 
@@ -154,15 +165,19 @@ module box_base() {
       }
       translate([0, box_extra+box_torus_front_dist, height-2*box_top_thick])
         cylinder(h=2*box_top_thick, d=box_torus_hole_d+2*box_side_thick, center=false);
-      translate([magnet_xpos, magnet_ypos, height-box_top_thick])
-        rotate([180, 0, 0])
-        cylinder(d=magnet_dia+2*box_top_thick, h=magnet_height+box_top_thick, center=false);
+      for (i=[0:1]) {
+        translate([mag_x[i], mag_y[i], height-box_top_thick])
+          rotate([180, 0, 0])
+          cylinder(d=magnet_dia+2*box_top_thick, h=magnet_height+box_top_thick, center=false);
+      }
     }
-    translate([magnet_xpos, magnet_ypos, height+2*eps])
-      rotate([180, 0, 0])
-      cylinder(d=magnet_dia+magnet_hole_tolerance, h=magnet_height, center=false);
     translate([0, box_extra+box_torus_front_dist, 0])
       cylinder(h=1000, d=box_torus_hole_d, center=true);
+    for (i=[0:1]) {
+      translate([mag_x[i], mag_y[i], height+2*eps])
+        rotate([180, 0, 0])
+        cylinder(d=magnet_dia+magnet_hole_tolerance, h=magnet_height, center=false);
+    }
     motor_leads_cutout(zpos=middle_zpos);
   }
 }
