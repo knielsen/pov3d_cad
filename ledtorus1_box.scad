@@ -28,8 +28,6 @@ box_extra = 35.7;
 middle_zpos = box_base_height + box_top_thick;
 middle_thick = box_top_thick;
 top_side_thick = box_side_thick;
-top_height = 19;
-top_top = middle_zpos + top_height;
 
 pcb_width = 100;
 pcb_len = 68;
@@ -55,6 +53,11 @@ pcb_motor_cutout_ypos1 = pcb_motor_cutout_ypos2 - 30;
 conn_pin_xsize = 3.2;
 conn_pin_ysize = 1.5;
 conn_pin_zsize = 2.5;
+
+// The nRF24L01+ module goes 14mm above the PCB top surface. Make sure there is
+// room for that and 1mm to spare.
+top_height = middle_thick + pcb_lift + pcb_thick + 14 + 1;
+top_top = middle_zpos + top_height;
 
 mount_screw_len = 39;
 hexnut_hole_depth = top_top - (mount_screw_len - 5);
@@ -387,18 +390,19 @@ module top_part() {
     translate([0, .5*top_len-top_side_thick, middle_zpos+.5*top_height-box_top_thick])
       cube([hd_width, top_len, top_height], center=true);
     cutout_xsize = 1.2*box_side_thick;
-    cutout_zsize = top_height - box_top_thick;
+    cutout_zsize_left = 18.5;
+    cutout_zsize_right = 17.5;
     cutout_left_ysize = pcb_left_cutout_ypos2 - pcb_left_cutout_ypos1;
     translate([-(.5*hd_width+box_side_thick-.5*box_side_thick),
                pcb_left_cutout_ypos1 + .5*cutout_left_ysize,
-               middle_zpos + .5*cutout_zsize - eps]) {
-      cube([cutout_xsize, cutout_left_ysize, cutout_zsize], center=true);
+               middle_zpos + .5*cutout_zsize_left - eps]) {
+      cube([cutout_xsize, cutout_left_ysize, cutout_zsize_left], center=true);
     }
     cutout_right_ysize = pcb_right_cutout_ypos2 - pcb_right_cutout_ypos1;
     translate([+(.5*hd_width+box_side_thick-.5*box_side_thick),
                pcb_right_cutout_ypos1 + .5*cutout_right_ysize,
-               middle_zpos + .5*cutout_zsize - eps]) {
-      cube([cutout_xsize, cutout_right_ysize, cutout_zsize], center=true);
+               middle_zpos + .5*cutout_zsize_right - eps]) {
+      cube([cutout_xsize, cutout_right_ysize, cutout_zsize_right], center=true);
     }
     // Ventilation.
     vent_x = 21;
