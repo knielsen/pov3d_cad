@@ -5,6 +5,10 @@ do_pcb = true;
 do_hex_nut_supports = true;
 do_exploded = true;
 
+// Open build, to make the electronics and HDD-reuse visible.
+with_open_build = false;
+// Holes below PS2 connectors, as a template for soldering the connectors in
+// the right position to fit in the encasing.
 with_solder_holes = false;
 
 ps2_conn_ridge_width = 2.5;
@@ -70,6 +74,21 @@ hexnut_slot_tolerance=2*0.25;
 side_hole_z = 6.0;
 side_hole_y = [box_extra+hd_len+box_side_thick-119.3,
                box_extra+hd_len+box_side_thick-18.0];
+
+magnet_xpos1 = 31;
+magnet_ypos1 = 93.8;
+//magnet_xpos2 = -(.5*(hd_width+2*box_side_thick)-26.5;
+//magnet_ypos2 = box_extra+hd_len+box_side_thick-21;
+magnet_xpos2 = -16.6;
+// Compute magnet2 pos with same distance to torus-center as magnet1.
+t_cx = 0;
+t_cy = box_extra+box_torus_front_dist;
+magnet_ypos2 = t_cy -
+  sqrt((magnet_ypos1-t_cy)*(magnet_ypos1-t_cy) +
+       (magnet_xpos1-t_cx)*(magnet_xpos1-t_cx) -
+       (magnet_xpos2-t_cx)*(magnet_xpos2-t_cx));
+magnet_height = 10;
+magnet_dia = 6;
 
 // It seems to fit that the bottom inner ridge of the PS2 connector sits in
 // the middle of the PCB. With enough tiny slack that it should be possible
@@ -146,23 +165,8 @@ module box_base() {
   side_hole_tolerance_z = 0.3;
   side_hole_tolerance_y = 0.8 - side_hole_tolerance_z;
   magnet_hole_tolerance = 0.15;
-  magnet_xpos = 31;
-  magnet_ypos = 93.8;
-  //magnet_xpos2 = -(.5*(hd_width+2*box_side_thick)-26.5;
-  //magnet_ypos2 = box_extra+hd_len+box_side_thick-21;
-  magnet_xpos2 = -16.6;
-  // Compute magnet2 pos with same distance to torus-center as magnet1.
-  t_cx = 0;
-  t_cy = box_extra+box_torus_front_dist;
-  magnet_ypos2 = t_cy -
-    sqrt((magnet_ypos-t_cy)*(magnet_ypos-t_cy) +
-         (magnet_xpos-t_cx)*(magnet_xpos-t_cx) -
-         (magnet_xpos2-t_cx)*(magnet_xpos2-t_cx));
-  mag_x = [magnet_xpos, magnet_xpos2];
-  mag_y = [magnet_ypos, magnet_ypos2];
-
-  magnet_height = 10;
-  magnet_dia = 6;
+  mag_x = [magnet_xpos1, magnet_xpos2];
+  mag_y = [magnet_ypos1, magnet_ypos2];
 
   difference() {
     union() {
@@ -485,6 +489,34 @@ module top_part() {
 }
 
 
+module open_build_subtract() {
+  eps = 0.037;
+  cutout_back_y1 = magnet_ypos2+.5*magnet_dia+2*box_side_thick;
+  cutout_back_y2 = magnet_ypos1+.5*magnet_dia+2*box_side_thick;
+  cutout_front_xsize1 = pcb_width-10;
+  cutout_front_ysize1 = 40;
+  cutout_front_xsize2 = pcb_width-20;
+  cutout_front_ysize2 = 150;
+  cutout_front_y = 18;
+  cutout_front_z = middle_zpos + 5;
+
+  translate([eps, cutout_back_y1, -top_top]) {
+    mirror([1, 0, 0]) {
+      cube([2*hd_width, hd_len, 3*top_top], center=false);
+    }
+  }
+  translate([-eps, cutout_back_y2, -top_top]) {
+    cube([2*hd_width, hd_len, 3*top_top], center=false);
+  }
+  translate([-.5*cutout_front_xsize1, cutout_front_y, cutout_front_z]) {
+    cube([cutout_front_xsize1, cutout_front_ysize1, top_height], center=false);
+  }
+  translate([-.5*cutout_front_xsize2, cutout_front_y, cutout_front_z]) {
+    cube([cutout_front_xsize2, cutout_front_ysize2, top_height], center=false);
+  }
+}
+
+
 module assembly() {
   exp_z = (do_exploded ? 8 : 0);
 
@@ -536,4 +568,11 @@ module assembly() {
 //box_base();
 //color("black") pcb();
 
-assembly();
+if (!with_open_build) {
+  assembly();
+} else {
+  difference() {
+    assembly();
+    open_build_subtract();
+  }
+}
