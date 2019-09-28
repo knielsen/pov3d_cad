@@ -24,6 +24,10 @@ box_base_height = 25.4;
 box_torus_hole_d = 80 + 2*1.5;
 box_torus_front_dist = 95.0;
 box_extra = 35.7;
+// This makes the rounded corner minimum thickness be 1/2 of box_side_thick.
+box_corner_r = box_side_thick*sqrt(2)/(2*(sqrt(2)-1));
+// This is perhaps better?
+//box_corner_r = box_side_thick;
 
 middle_zpos = box_base_height + box_top_thick;
 middle_thick = box_top_thick;
@@ -75,6 +79,22 @@ ps2_conn_inner_low_zpos = pcb_top - .5*pcb_thick;
 $fa = 5;
 $fs = 0.2;
 
+
+module cube_rounded(sizes, r, center=true) {
+  sx = sizes[0];
+  sy = sizes[1];
+  sz = sizes[2];
+  translate([(center ? 0 : .5*sx), (center ? 0 : .5*sy), (center ? 0 : .5*sz)]) {
+    hull() {
+      for (i = [-1:2:1]) {
+        for (j = [-1:2:1]) {
+          translate([i*(.5*sx-r), j*(.5*sy-r), 0])
+            cylinder(h=sz, r=r, center=true);
+        }
+      }
+    }
+  }
+}
 
 module pcb() {
   w=pcb_width;
@@ -148,9 +168,9 @@ module box_base() {
     union() {
       difference() {
         translate([0, .5*(box_extra+hd_len+box_side_thick), .5*height])
-          cube([hd_width+2*box_side_thick,
-                box_extra+hd_len+box_side_thick,
-                height], center=true);
+          cube_rounded([hd_width+2*box_side_thick,
+                        box_extra+hd_len+box_side_thick,
+                        height], r=box_corner_r, center=true);
         translate([0, box_extra+.5*hd_len, .5*box_base_height-eps])
           cube([hd_width, hd_len, box_base_height], center=true);
         for(i = [0:1]) {
@@ -318,7 +338,7 @@ module mounting_holes(do_front=true, do_back=true) {
 module hex_nut_supports() {
   hole_tolerance = 0.4;
   height_tolerance = 0.8;
-  height = 8.5 - height_tolerance;
+  height = 9.5 - height_tolerance;
   screw_tolerance = 2*0.4;
 
   for(i = [-1:2:1]) {
@@ -374,6 +394,12 @@ module middle_part() {
   }
 }
 
+module top_part_main_body(top_width, top_len) {
+  translate([0, .5*top_len, middle_zpos+.5*top_height])
+    cube_rounded([top_width, top_len, top_height], r=box_corner_r, center=true);
+}
+
+
 module top_part() {
   eps = 0.00551;
   top_back_tolerance = 0.4;
@@ -383,10 +409,8 @@ module top_part() {
   hole_tolerance2 = 2*0.15;
   front_tolerance = 0.1;
 
-  ps2_conn_support_high();
   difference() {
-    translate([0, .5*top_len, middle_zpos+.5*top_height])
-      cube([top_width, top_len, top_height], center=true);
+    top_part_main_body(top_width, top_len);
     translate([0, .5*top_len-top_side_thick, middle_zpos+.5*top_height-box_top_thick])
       cube([hd_width, top_len, top_height], center=true);
     cutout_xsize = 1.2*box_side_thick;
@@ -419,13 +443,24 @@ module top_part() {
         }
       }
     }
+    translate([0, 23.4, top_top-0.4]) {
+      linear_extrude(height=1)
+        text("LED-Torus", halign="center", valign="bottom",
+             font="Roboto:style=Regular", size=14);
+    }
   }
 
   xsize2 = .5*(hd_width+2*box_side_thick-pcb_width)-front_tolerance;
   ysize2 = conn_pin_ysize+2*top_side_thick;
-  for (i = [-1:2:1]) {
-    translate([i*.5*(hd_width+2*box_side_thick-xsize2), .5*ysize2, middle_zpos+.5*top_height])
-      cube([xsize2, ysize2, top_height], center=true);
+  intersection() {
+    top_part_main_body(top_width, top_len);
+    union() {
+      ps2_conn_support_high();
+      for (i = [-1:2:1]) {
+        translate([i*.5*(hd_width+2*box_side_thick-xsize2), .5*ysize2, middle_zpos+.5*top_height])
+          cube([xsize2, ysize2, top_height], center=true);
+      }
+    }
   }
 
   // Stubs for mounting screws.
